@@ -1,30 +1,54 @@
 {
   "expo": {
-    "name": "venstock-app",
+    "name": "Venstock",
     "slug": "venstock-app",
+    "scheme": "venstock",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "icon": "./assets/ios-icon.png",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.emanuelh.venstock",
+      "icon": "./assets/ios-icon.png",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.emanuelh.venstock",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-icon-large.png",
+          "dark": {
+            "image": "./assets/splash-icon-large.png",
+            "backgroundColor": "#ffffff"
+          },
+          "imageWidth": 200
+        }
+      ],
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Venstock precisa acessar suas fotos para personalizar seu perfil.",
+          "cameraPermission": "O Venstock precisa acessar a câmera para tirar sua foto de perfil.",
+          "colors": {
+            "cropToolbarColor": "#FFFFFF",
+            "cropToolbarWidgetColor": "#5DAA18"
+          }
+        }
+      ]
+    ]
   }
 }
