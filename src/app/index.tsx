@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Text,
@@ -7,11 +7,13 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native';
 
-// IMPORTANTE: Importar da biblioteca nova
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/Button';
 import { CustomTitle } from '@/components/CustomTitle';
@@ -19,13 +21,52 @@ import { GradientText } from '@/components/GradientText';
 import { ImageInput } from '@/components/ImageInput';
 import { Input } from '@/components/Input';
 import { colors, fontFamily } from '@/theme';
+import { userStorage } from '@/database/userStorage';
 
 export default function Index() {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const router = useRouter();
+
+  const { saveUserData, getUserData } = userStorage();
+
+  // Função para salvar e avançar
+  const handleStart = async () => {
+    if (userName.trim().length < 3) {
+      Alert.alert('Ops!', 'Por favor, digite um nome válido para a loja.');
+      return;
+    }
+
+    try {
+      await saveUserData(userName, userImage);
+      console.log('Dados salvos!');
+      router.push('/(dashboard)');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar seus dados.');
+      console.log(error);
+    }
+  };
+
+  //CHECAR SE EXISTE UM USUÁRIO
+  async function checkExistingUser() {
+    try {
+      const data = await getUserData();
+      if (data.name) {
+        console.log('Usuário já esta logado');
+        console.log('Logado como', data.name);
+        console.log('imageUrl', data.image);
+        router.replace('/(dashboard)');
+      }
+    } catch (error) {
+      console.log('Error ao carregar dados', error);
+    }
+  }
+
+  useEffect(() => {
+    checkExistingUser();
+  }, []);
 
   return (
-    // O SafeAreaProvider deve envolver a aplicação (pode estar aqui ou no seu _layout.tsx)
     <SafeAreaProvider>
       <SafeAreaView
         style={{ flex: 1, backgroundColor: colors.white }}
@@ -37,16 +78,16 @@ export default function Index() {
           <View style={{ flex: 1 }}>
             <KeyboardAvoidingView
               style={{ flex: 1 }}
-              // Mudamos para 'padding' em ambos, mas com ajuste de altura
-              behavior={'padding'}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              // Ajuste fino para o botão não sumir no Android
+              keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
             >
               <ScrollView
                 contentContainerStyle={{
                   flexGrow: 1,
                   paddingHorizontal: 24,
-                  paddingBottom: 20
+                  paddingBottom: 20 // Aumentei um pouco para o botão respirar
                 }}
-                // IMPORTANTE: Isso ajuda o ScrollView a entender o teclado
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
@@ -64,7 +105,11 @@ export default function Index() {
                     color2={colors.green[500]}
                   />
 
-                  <CustomTitle text1="Seja" text2="Bem vindo ao" />
+                  <CustomTitle
+                    text1="Seja"
+                    text2="Bem vindo ao"
+                    gradient={[colors.green[400], colors.green[500]]}
+                  />
 
                   <GradientText
                     style={{
@@ -124,10 +169,7 @@ export default function Index() {
                     text="Começar minhas vendas"
                     color1={colors.green[400]}
                     color2={colors.green[500]}
-                    onPress={() => {
-                      Keyboard.dismiss();
-                      console.log('Nome:', userName);
-                    }}
+                    onPress={handleStart}
                   />
                 </View>
               </ScrollView>

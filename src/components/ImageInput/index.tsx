@@ -66,7 +66,7 @@ export function ImageInput({
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.7
+      quality: 0.9
     });
 
     if (!result.canceled) onChangeImage(result.assets[0].uri);
