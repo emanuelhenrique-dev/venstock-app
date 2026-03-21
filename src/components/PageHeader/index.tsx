@@ -1,11 +1,11 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View, ViewProps } from 'react-native';
 import { CustomTitle } from '../CustomTitle';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { colors } from '@/theme';
 import { router } from 'expo-router';
 
-interface Props {
+interface Props extends ViewProps {
   title1: string;
   title2: string;
   subtitle: string;
@@ -23,10 +23,11 @@ export function PageHeader({
   subtitle,
   gradient,
   back = false,
-  button
+  button,
+  ...rest
 }: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { ...rest }.style]}>
       {back && (
         <View style={styles.header}>
           <TouchableOpacity
@@ -59,7 +60,12 @@ export function PageHeader({
           button && !back && { justifyContent: 'space-between' }
         ]}
       >
-        <View style={styles.titleContainer}>
+        <View
+          style={[
+            styles.titleContainer,
+            button && { alignItems: 'flex-start' }
+          ]}
+        >
           <CustomTitle text1={title1} text2={title2} gradient={gradient} />
           <Text
             style={[styles.subtitle, button && !back && { textAlign: 'left' }]}

@@ -23,7 +23,8 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start'
   },
   titleContainer: {
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   subtitle: {
     fontSize: 14,

@@ -1,0 +1,28 @@
+import { colors } from '@/theme';
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    width: 130,
+    height: 130,
+    borderRadius: 170,
+    backgroundColor: colors.gray[100],
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative', // Para o badge se posicionar
+
+    // Sombra leve para destacar no fundo branco
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 170
+  }
+});

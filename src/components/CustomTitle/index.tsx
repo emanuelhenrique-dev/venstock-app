@@ -15,13 +15,15 @@ export function CustomTitle({ text1, text2, gradient, ...rest }: props) {
       <Text style={styles.text} {...rest}>
         {text1}
       </Text>
-      <GradientText
-        style={styles.text}
-        color1={gradient[0]}
-        color2={gradient[1]}
-      >
-        {text2}
-      </GradientText>
+      {text2 && (
+        <GradientText
+          style={styles.text}
+          color1={gradient[0]}
+          color2={gradient[1]}
+        >
+          {text2}
+        </GradientText>
+      )}
     </View>
   );
 }

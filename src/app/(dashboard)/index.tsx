@@ -3,7 +3,14 @@ import { userStorage } from '@/database/userStorage';
 import { colors } from '@/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  StatusBar,
+  Text,
+  View
+} from 'react-native';
 
 export default function Index() {
   const [userName, setUserName] = useState('');
@@ -52,11 +59,12 @@ export default function Index() {
         paddingHorizontal: 24
       }}
     >
+      <StatusBar barStyle="dark-content" />
       <PageHeader
         title1="Olá"
         title2={userName || 'Lojista'}
         subtitle="Acompanhe suas vendas"
-        gradient={[colors.green[400], colors.green[500]]}
+        gradient={[colors.blue[400], colors.blue[500]]}
         button={{
           icon: 'delete',
           onPress: () => {
