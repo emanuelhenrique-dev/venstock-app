@@ -1,9 +1,10 @@
 import { CustomImage } from '@/components/CustomImage';
 import { PageHeader } from '@/components/PageHeader';
+
 import { userStorage } from '@/database/userStorage';
 import { colors } from '@/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, StatusBar, Text, View } from 'react-native';
+import { ActivityIndicator, StatusBar, View } from 'react-native';
 
 export default function User() {
   const [userName, setUserName] = useState('');
