@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { userStorage } from '@/database/userStorage';
 import { colors } from '@/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, View } from 'react-native';
+import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 
 export default function User() {
   const [userName, setUserName] = useState('');
@@ -37,12 +37,19 @@ export default function User() {
     <View
       style={{
         flex: 1,
-        paddingVertical: 52,
-        paddingHorizontal: 24
+        paddingVertical: 52
       }}
     >
       <StatusBar barStyle="dark-content" />
-      <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 24,
+          paddingHorizontal: 24,
+          zIndex: 1
+        }}
+      >
         <CustomImage image={userImage} size={130} color={colors.green[400]} />
         <PageHeader
           title1={userName}
@@ -53,7 +60,19 @@ export default function User() {
         />
       </View>
 
-      <View style={{ marginTop: 32, gap: 24 }}></View>
+      <View
+        style={{
+          marginTop: -150,
+          marginBottom: 80,
+          gap: 24,
+          backgroundColor: colors.gray[100],
+          flex: 1,
+          paddingTop: 172,
+          paddingHorizontal: 24
+        }}
+      >
+        <Text>Lista aqui</Text>
+      </View>
     </View>
   );
 }

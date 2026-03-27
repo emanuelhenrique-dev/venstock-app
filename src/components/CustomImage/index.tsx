@@ -23,6 +23,7 @@ export function CustomImage({
 }: props) {
   // Define qual placeholder exibir baseado na variante
   const getPlaceholder = () => {
+    console.log('image:', placeholderProfile);
     switch (variant) {
       case 'category':
         return placeholderCategory;
@@ -38,8 +39,9 @@ export function CustomImage({
       <Image
         width={size}
         height={size}
-        source={image ? { uri: image } : { uri: getPlaceholder() }}
+        source={image ? { uri: image } : getPlaceholder()}
         style={styles.image}
+        resizeMode="cover"
       />
     </View>
   );
