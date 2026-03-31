@@ -2,22 +2,14 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
 
-import { colors, fontFamily } from '@/theme'; // Ajuste o path se necessário
-import { Input } from '../Input';
+import { colors } from '@/theme';
 import { List } from '../List';
 import { styles } from './styles';
 import { ProductCard } from '../ProductCard';
 import { selectedCategoryProps } from '@/app/(dashboard)';
-// import { ProductCard } from '../ProductCard'; // Você criará depois!
-// import { CategoryCardProps } from '../CategoryCard'; // Se tiver a tipagem centralizada
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -102,11 +94,15 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
               <MaterialIcons name="share" size={20} color={colors.gray[500]} />
             </TouchableOpacity>
           </View>
-
           <List
-            data={produtosGelados} // Mock por enquanto
+            data={produtosGelados}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ProductCard data={item} />}
+            renderItem={({ item }) => (
+              <ProductCard
+                data={item}
+                onDelete={() => console.log('Deletar', item.id)}
+              />
+            )}
             containerStyle={{ flex: 1 }}
           />
         </MotiView>

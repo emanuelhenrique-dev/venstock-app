@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
@@ -39,7 +40,7 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'center'
   },
   details: {},
-  button: {
+  addButton: {
     flexShrink: 0,
     padding: 14,
     margin: 4,
@@ -50,5 +51,16 @@ export const styles = StyleSheet.create({
 
     borderLeftColor: colors.green[500],
     borderLeftWidth: 1
+  },
+  swipeableContainer: {
+    borderRadius: 8
+  },
+  option: {
+    backgroundColor: colors.red[500],
+    width: 80,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 2 // Para alinhar com a sombra/borda do seu container
   }
 });

@@ -77,37 +77,6 @@ export default function Index() {
     }
   ];
 
-  // Mocks dos produtos da categoria
-  const produtosGelados = [
-    {
-      id: '1',
-      name: 'Picolé de Fruta',
-      price: 12.6,
-      qtdEstoque: 70,
-      qtdVendidos: 30,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '2',
-      name: 'Picolé de Leite',
-      price: 15.0,
-      qtdEstoque: 25,
-      qtdVendidos: 15,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '3',
-      name: 'Saco de Gelo (Cubo)',
-      price: 8.5,
-      qtdEstoque: 45,
-      qtdVendidos: 12,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    }
-  ];
-
   //Função para alternar o período (o "Ciclo")
   function handleNextPeriod() {
     setPeriodIndex((prev) => (prev + 1) % salesPeriods.length);
