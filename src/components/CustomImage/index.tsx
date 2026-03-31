@@ -1,8 +1,8 @@
-import { Image, View } from 'react-native';
+import { Image, View, ViewProps } from 'react-native';
 
 type ImageInputVariant = 'profile' | 'category' | 'product';
 
-interface props {
+interface props extends ViewProps {
   image: string | null;
   size: number;
   color: string;
@@ -19,11 +19,12 @@ export function CustomImage({
   image,
   size,
   color,
-  variant = 'profile'
+  variant = 'profile',
+  ...rest
 }: props) {
   // Define qual placeholder exibir baseado na variante
   const getPlaceholder = () => {
-    console.log('image:', placeholderProfile);
+    // console.log('image:', placeholderProfile);
     switch (variant) {
       case 'category':
         return placeholderCategory;
@@ -35,7 +36,13 @@ export function CustomImage({
   };
 
   return (
-    <View style={[styles.container, { borderColor: color }]}>
+    <View
+      style={[
+        styles.container,
+        { borderColor: color, width: size, height: size },
+        { ...rest }.style
+      ]}
+    >
       <Image
         width={size}
         height={size}

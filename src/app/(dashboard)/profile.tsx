@@ -50,7 +50,12 @@ export default function User() {
           zIndex: 1
         }}
       >
-        <CustomImage image={userImage} size={130} color={colors.green[400]} />
+        <CustomImage
+          image={userImage}
+          size={130}
+          color={colors.green[400]}
+          style={{ marginBottom: 20 }}
+        />
         <PageHeader
           title1={userName}
           title2=""

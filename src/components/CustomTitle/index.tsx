@@ -12,7 +12,7 @@ interface props extends TextProps {
 export function CustomTitle({ text1, text2, gradient, ...rest }: props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text} {...rest}>
+      <Text style={styles.text} {...rest} numberOfLines={1}>
         {text1}
       </Text>
       {text2 && (
@@ -20,6 +20,7 @@ export function CustomTitle({ text1, text2, gradient, ...rest }: props) {
           style={styles.text}
           color1={gradient[0]}
           color2={gradient[1]}
+          numberOfLines={1}
         >
           {text2}
         </GradientText>

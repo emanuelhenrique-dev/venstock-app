@@ -3,14 +3,11 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
-    width: 130,
-    height: 130,
     borderRadius: 170,
     backgroundColor: colors.gray[100],
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
     position: 'relative', // Para o badge se posicionar
 
     // Sombra leve para destacar no fundo branco

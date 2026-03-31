@@ -25,7 +25,8 @@ export const styles = StyleSheet.create({
     fontSize: 22,
     color: colors.white,
     fontFamily: fontFamily.medium,
-    height: '90%'
+    includeFontPadding: false, // Dica de ouro para Android
+    textAlignVertical: 'center'
   },
   label: {
     fontSize: 13,
