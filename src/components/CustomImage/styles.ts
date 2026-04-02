@@ -11,9 +11,9 @@ export const styles = StyleSheet.create({
     position: 'relative', // Para o badge se posicionar
 
     // Sombra leve para destacar no fundo branco
-    elevation: 4,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4
   },

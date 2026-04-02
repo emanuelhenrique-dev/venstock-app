@@ -16,21 +16,24 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20
+    marginBottom: 20,
+    paddingHorizontal: 8
   },
   backButton: {
-    padding: 10,
+    padding: 6,
     backgroundColor: colors.gray[100],
     borderRadius: 20
   },
   categoryInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8
   },
   categoryTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: fontFamily.medium,
-    color: colors.black
+    color: colors.black,
+    includeFontPadding: false
   }
 });

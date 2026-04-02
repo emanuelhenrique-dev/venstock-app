@@ -11,7 +11,10 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.25)',
     marginHorizontal: 2,
-    paddingHorizontal: 8
+    paddingHorizontal: 8,
+
+    borderLeftWidth: 1,
+    borderColor: colors.red[500]
   },
   content: {
     flex: 1,
@@ -58,7 +61,7 @@ export const styles = StyleSheet.create({
   option: {
     backgroundColor: colors.red[500],
     width: 80,
-    padding: 24,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 2 // Para alinhar com a sombra/borda do seu container

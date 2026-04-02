@@ -1,8 +1,8 @@
 import { CategoryCard } from '@/components/CategoryCard';
-import { Input } from '@/components/Input';
 import { List } from '@/components/List';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductsListOverlay } from '@/components/ProductsListOverlay';
+import { SearchInput } from '@/components/SearchInput';
 import { Summary } from '@/components/Summary';
 import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
@@ -172,7 +172,7 @@ export default function Index() {
         >
           Produtos
         </Text>
-        <Input placeholder="Buscar Categoria" />
+        <SearchInput placeholder="Buscar produto..." />
         <View
           style={{
             flex: 1,
