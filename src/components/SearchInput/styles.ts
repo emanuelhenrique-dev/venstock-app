@@ -18,6 +18,7 @@ export const styles = StyleSheet.create({
     gap: 8
   },
   input: {
+    flex: 1,
     color: colors.black,
     fontFamily: fontFamily.regular,
     fontSize: 16,
