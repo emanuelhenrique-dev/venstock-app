@@ -38,14 +38,6 @@ export function SearchInput({ ...rest }: Props) {
           console.log('Produto escaneado:', codigo);
         }}
       />
-      {/* 
-      <TouchableOpacity activeOpacity={0.7}>
-        <MaterialIcons
-          name="document-scanner"
-          size={24}
-          color={colors.gray[500]}
-        />
-      </TouchableOpacity> */}
     </View>
   );
 }

@@ -24,8 +24,7 @@ export const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     color: colors.black,
-    fontFamily: fontFamily.medium,
-    maxWidth: '80%'
+    fontFamily: fontFamily.semiBold
   },
   statusContainer: {
     flexDirection: 'row',
@@ -43,18 +42,6 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'center'
   },
   details: {},
-  addButton: {
-    flexShrink: 0,
-    padding: 14,
-    margin: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderTopEndRadius: 8,
-    borderBottomEndRadius: 8,
-
-    borderLeftColor: colors.green[500],
-    borderLeftWidth: 1
-  },
   swipeableContainer: {
     borderRadius: 8
   },
@@ -65,5 +52,41 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 2 // Para alinhar com a sombra/borda do seu container
+  },
+
+  actionContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 50,
+    minHeight: 65 // Garante que o espaço não mude bruscamente
+  },
+  addButton: {
+    padding: 14,
+    margin: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopEndRadius: 8,
+    borderBottomEndRadius: 8,
+
+    borderLeftColor: colors.green[500],
+    borderLeftWidth: 1
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  qtyButton: {
+    padding: 4,
+    borderRadius: 5
+  },
+  quantityText: {
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: colors.black,
+    marginHorizontal: 4,
+    width: 34,
+    textAlign: 'center',
+    includeFontPadding: false
   }
 });

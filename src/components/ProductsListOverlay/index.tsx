@@ -61,6 +61,24 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
       qtdVendidos: 12,
       imageUrl: 'url-aqui',
       color: 'color-aqui'
+    },
+    {
+      id: '4',
+      name: 'Geladinho de chocolate',
+      price: 2.0,
+      qtdEstoque: 30,
+      qtdVendidos: 8,
+      imageUrl: 'url-aqui',
+      color: 'color-aqui'
+    },
+    {
+      id: '5',
+      name: 'Sorvete Napolitano',
+      price: 22.0,
+      qtdEstoque: 12,
+      qtdVendidos: 4,
+      imageUrl: 'url-aqui',
+      color: 'color-aqui'
     }
   ];
 
@@ -135,10 +153,10 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                   icon: 'edit',
                   onOpen: () => EditProduct(item.id)
                 }}
-                variant="sell"
               />
             )}
             containerStyle={{ flex: 1 }}
+            snapToInterval={100}
           ></List>
         </MotiView>
       )}

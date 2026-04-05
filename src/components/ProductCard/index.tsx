@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef } from 'react'; // Importante para o Swipeable funcionar bem
+import React, { ReactNode, useRef, useState } from 'react'; // Importante para o Swipeable funcionar bem
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, ViewProps, View, TouchableOpacity } from 'react-native';
 import { styles } from './styles';
@@ -10,7 +10,9 @@ import { ProductCardProps } from '../ProductsListOverlay';
 import Swipeable, {
   SwipeableMethods
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
-import { RectButton } from 'react-native-gesture-handler';
+import { RectButton, TextInput } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Input } from '../Input';
 
 type ProductCardVariant = 'stock' | 'sell' | 'remove';
 interface Props extends ViewProps {
@@ -30,12 +32,17 @@ export function ProductCard({
   children,
   ...rest
 }: Props) {
+  const [quantity, setQuantity] = useState(0);
   const swipeableRef = useRef<SwipeableMethods | null>(null);
 
   async function handleSwipeable() {
     swipeableRef.current?.close();
     await leftAction.onOpen();
   }
+
+  // Funções para manipular a quantidade
+  const handleAdd = () => setQuantity((prev) => (prev < 999 ? prev + 1 : 999));
+  const handleRemove = () => setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
 
   // O que vai aparecer atrás do card
   const renderLeftActions = () => (
@@ -107,14 +114,64 @@ export function ProductCard({
             )}
           </View>
         </View>
+        {/* LÓGICA DO BOTÃO DINÂMICO */}
+        <View style={styles.actionContainer}>
+          {quantity === 0 ? (
+            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+              <MaterialIcons
+                name="add-shopping-cart"
+                size={24}
+                color={colors.green[500]}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.quantityContainer}>
+              <TouchableOpacity
+                onPress={handleRemove}
+                style={[
+                  styles.qtyButton,
+                  { backgroundColor: colors.green[100] }
+                ]}
+              >
+                <MaterialIcons
+                  name="remove"
+                  size={16}
+                  color={colors.green[500]}
+                />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.quantityText}
+                value={quantity.toString()}
+                onChangeText={(text) => {
+                  // Remove qualquer coisa que não seja número
+                  const numericValue = text.replace(/[^0-9]/g, '');
+                  const finalValue = parseInt(numericValue) || 0;
 
-        <TouchableOpacity style={styles.addButton}>
-          <MaterialIcons
-            name="add-shopping-cart"
-            size={25}
-            color={colors.green[500]}
-          />
-        </TouchableOpacity>
+                  // Se o valor for maior que 999, trava no 999
+                  if (finalValue > 999) {
+                    setQuantity(999);
+                  } else {
+                    setQuantity(finalValue);
+                  }
+                }}
+                cursorColor={colors.blue[400]}
+                keyboardType="numeric"
+                maxLength={3}
+              />
+              <TouchableOpacity
+                onPress={handleAdd}
+                style={{ opacity: quantity >= 999 ? 0.1 : 1 }}
+              >
+                <LinearGradient
+                  colors={[colors.green[400], colors.green[500]]}
+                  style={styles.qtyButton}
+                >
+                  <MaterialIcons name="add" size={16} color={colors.white} />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </Swipeable>
   );
