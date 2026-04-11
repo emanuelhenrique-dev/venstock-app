@@ -99,7 +99,7 @@ export function ImageInput({
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         activeOpacity={0.8}
-        style={styles.container}
+        style={[styles.container, { borderColor: color1 }]}
       >
         <Image
           source={imageUri ? { uri: imageUri } : getPlaceholder()}

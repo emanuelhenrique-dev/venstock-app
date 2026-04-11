@@ -7,8 +7,18 @@ import { Summary } from '@/components/Summary';
 import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StatusBar, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -163,15 +173,33 @@ export default function Index() {
           />
         </View>
 
-        <Text
-          style={{
-            color: colors.black,
-            fontSize: 18,
-            fontFamily: fontFamily.medium
-          }}
-        >
-          Produtos
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text
+            style={{
+              color: colors.black,
+              fontSize: 18,
+              fontFamily: fontFamily.medium,
+              includeFontPadding: false
+            }}
+          >
+            Produtos
+          </Text>
+          <TouchableOpacity onPress={() => router.navigate('/new-category')}>
+            <LinearGradient
+              colors={
+                !selectedCategory
+                  ? [colors.blue[400], colors.blue[500]]
+                  : [colors.green[400], colors.green[500]]
+              }
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={{ borderRadius: 40, padding: 4, paddingHorizontal: 6 }}
+            >
+              <MaterialIcons name="add" size={24} color={colors.white} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
         <SearchInput placeholder="Buscar produto..." />
         <View
           style={{

@@ -11,10 +11,8 @@ export const styles = StyleSheet.create({
     borderRadius: 170,
     backgroundColor: colors.gray[100],
     borderWidth: 2,
-    borderColor: colors.green[400],
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
     position: 'relative', // Para o badge se posicionar
 
     // Sombra leve para destacar no fundo branco

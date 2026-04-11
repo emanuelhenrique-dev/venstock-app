@@ -46,7 +46,7 @@ export function PageHeader({
             >
               <MaterialIcons
                 name={button.icon}
-                size={28}
+                size={24}
                 color={colors.gray[600]}
               />
             </TouchableOpacity>
@@ -63,7 +63,7 @@ export function PageHeader({
         <View
           style={[
             styles.titleContainer,
-            button && { alignItems: 'flex-start' }
+            button && !back && { alignItems: 'flex-start' }
           ]}
         >
           <CustomTitle text1={title1} text2={title2} gradient={gradient} />

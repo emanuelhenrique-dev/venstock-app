@@ -10,10 +10,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32
+    marginBottom: 8
   },
   buttonHeader: {
-    padding: 10,
+    padding: 8,
     backgroundColor: colors.gray[150],
     borderRadius: 75
   },

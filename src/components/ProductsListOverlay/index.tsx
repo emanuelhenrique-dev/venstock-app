@@ -11,6 +11,7 @@ import { styles } from './styles';
 import { ProductCard } from '../ProductCard';
 import { selectedCategoryProps } from '@/app/(dashboard)';
 import { CustomImage } from '../CustomImage';
+import { router } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -133,9 +134,18 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                 color={colors.blue[400]}
                 variant="category"
               />
-              <Text style={styles.categoryTitle}>{selectedCategory.name}</Text>
-              <TouchableOpacity>
-                <MaterialIcons name="edit" size={20} color={colors.gray[500]} />
+              <Text style={styles.categoryTitle} numberOfLines={1}>
+                {selectedCategory.name}
+              </Text>
+              <TouchableOpacity activeOpacity={0.3}>
+                <MaterialIcons
+                  name="edit"
+                  size={20}
+                  color={colors.gray[500]}
+                  onPress={() =>
+                    router.navigate(`/new-category/?id=${selectedCategory.id}`)
+                  }
+                />
               </TouchableOpacity>
             </View>
 

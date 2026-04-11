@@ -36,6 +36,20 @@ export default function Layout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="(dashboard)" />
+      <Stack.Screen
+        name="new-category"
+        options={{
+          presentation: 'modal', // Isso faz ela subir de baixo no iOS/Android moderno
+          animation: 'slide_from_bottom'
+        }}
+      />
+      <Stack.Screen
+        name="new-product"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom'
+        }}
+      />
     </Stack>
   );
 }
