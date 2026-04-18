@@ -112,7 +112,11 @@ export function ImageInput({
           end={{ x: 1, y: 1 }}
           style={styles.badge}
         >
-          <MaterialIcons name="edit" size={18} color={colors.white} />
+          <MaterialIcons
+            name="edit"
+            size={18}
+            color={color2 !== '#FFFFFF' ? colors.white : colors.black}
+          />
         </LinearGradient>
       </TouchableOpacity>
 

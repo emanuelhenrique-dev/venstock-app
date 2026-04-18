@@ -16,11 +16,12 @@ export const styles = StyleSheet.create({
     marginTop: 8
   },
   color: {
-    width: 36,
-    height: 36,
+    width: 42,
+    height: 42,
     borderRadius: 42,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.6
+    borderWidth: 1,
+    borderColor: colors.gray[200]
   }
 });

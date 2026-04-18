@@ -98,6 +98,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
           style: 'destructive',
           onPress: () => {
             console.warn('editar produto', id);
+            router.navigate(`/new-product/?id=${id}`);
           }
         }
       ]);

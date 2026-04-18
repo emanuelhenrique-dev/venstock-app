@@ -1,28 +1,73 @@
-import { Text, TextInput, TextInputProps, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import {
+  ColorPalette,
+  ColorPicker,
+  ColorPickerDialog
+} from 'react-native-ui-lib';
 import { styles } from './styles';
-import { colors } from '@/theme';
+import { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 
-interface Props extends TextInputProps {
-  label?: string;
-  placeholder: string;
+interface Props {
+  label: string;
+  selectedColor: string;
+  setSelectedColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export function ColorInput({ label, ...rest }: Props) {
+export function ColorInput({ label, selectedColor, setSelectedColor }: Props) {
+  const [colors, setColors] = useState<string[]>([
+    '#EF4444', // vermelho
+    '#EC4899', // rosa
+    '#FACC15', // amarelo
+    '#5DAA18', // verde
+    '#040305', // roxo
+    '#155794' // azul
+  ]);
+
+  const [showPicker, setShowPicker] = useState(false);
+
+  function handleSubmit(newColor: string) {
+    setColors((prev) => {
+      const filtered = prev.filter((c) => c !== newColor);
+      return [newColor, ...filtered].slice(0, 6);
+    });
+    setSelectedColor(newColor);
+  }
+
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-
       <View style={styles.colorsInput}>
-        <View style={[styles.color, { borderWidth: 1, borderColor: 'black' }]}>
+        <TouchableOpacity
+          style={[styles.color, { borderWidth: 1, borderColor: 'black' }]}
+          onPress={() => setShowPicker(true)}
+        >
           <MaterialIcons name="add" size={20} />
-        </View>
-        <View style={[styles.color, { backgroundColor: '#0627FF' }]} />
-        <View style={[styles.color, { backgroundColor: '#FF0000' }]} />
-        <View style={[styles.color, { backgroundColor: '#00FF1E' }]} />
-        <View style={[styles.color, { backgroundColor: '#FFEA00' }]} />
-        <View style={[styles.color, { backgroundColor: '#0080F6' }]} />
+        </TouchableOpacity>
+        {colors.map((color) => (
+          <TouchableOpacity
+            key={color}
+            style={[styles.color, { backgroundColor: color }]}
+            onPress={() => setSelectedColor(color)}
+          >
+            {selectedColor == color ? (
+              <MaterialIcons name="done" size={20} color={'white'} />
+            ) : null}
+          </TouchableOpacity>
+        ))}
       </View>
+
+      <ColorPickerDialog
+        initialColor={selectedColor}
+        onDismiss={() => setShowPicker(false)}
+        onSubmit={(newColor) => handleSubmit(newColor)}
+        visible={showPicker}
+        containerStyle={{ backgroundColor: 'red' }}
+        dialogProps={{
+          centerV: true,
+          bottom: false
+        }}
+      />
     </View>
   );
 }

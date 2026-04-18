@@ -8,23 +8,15 @@ export const styles = StyleSheet.create({
   label: {
     color: colors.black,
     fontFamily: fontFamily.medium,
-    fontSize: 12,
-    marginBottom: 8
-  },
-  content: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 4,
-    padding: 6,
-    backgroundColor: colors.gray[150],
-    borderRadius: 10
+    fontSize: 12
   },
   input: {
-    flex: 1,
     color: colors.black,
     fontFamily: fontFamily.regular,
     fontSize: 16,
-    includeFontPadding: false
+    padding: 14,
+    marginTop: 8,
+    backgroundColor: colors.gray[150],
+    borderRadius: 10
   }
 });

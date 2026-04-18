@@ -5,18 +5,23 @@ import { colors } from '@/theme';
 interface Props extends TextInputProps {
   label?: string;
   placeholder: string;
+  mini?: boolean;
+  children?: React.ReactNode;
 }
 
-export function Input({ label, ...rest }: Props) {
+export function Input({ label, mini = false, children, ...rest }: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, mini ? { flex: 1 } : null]}>
       {label && <Text style={styles.label}>{label}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholderTextColor={colors.gray[400]}
-        {...rest}
-      />
+      <View style={styles.content}>
+        <TextInput
+          style={styles.input}
+          placeholderTextColor={colors.gray[400]}
+          {...rest}
+        />
+        {children}
+      </View>
     </View>
   );
 }

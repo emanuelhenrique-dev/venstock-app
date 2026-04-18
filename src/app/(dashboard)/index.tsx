@@ -20,6 +20,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
+import { categories } from '@/database/categories';
+
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
   id: string;
@@ -41,50 +43,6 @@ export default function Index() {
     { label: 'Última Semana', value: '1.240' },
     { label: 'Último Mês', value: '4.850' },
     { label: 'Último Ano', value: '52.300' }
-  ];
-
-  // Mocks das  categorias
-  const categorias = [
-    {
-      id: '1',
-      name: 'Gelados',
-      qtdEstoque: 180,
-      qtdVendidos: 64,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '2',
-      name: 'Bebidas',
-      qtdEstoque: 245,
-      qtdVendidos: 84,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '3',
-      name: 'Carnes & Espetinhos',
-      qtdEstoque: 60,
-      qtdVendidos: 15,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '4',
-      name: 'Outros',
-      qtdEstoque: 42,
-      qtdVendidos: 8,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '5',
-      name: 'Outrosasdasdsadasadasdsada',
-      qtdEstoque: 42,
-      qtdVendidos: 8,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    }
   ];
 
   //Função para alternar o período (o "Ciclo")
@@ -184,7 +142,13 @@ export default function Index() {
           >
             Produtos
           </Text>
-          <TouchableOpacity onPress={() => router.navigate('/new-category')}>
+          <TouchableOpacity
+            onPress={() => {
+              !selectedCategory
+                ? router.navigate('/new-category')
+                : router.navigate('/new-product');
+            }}
+          >
             <LinearGradient
               colors={
                 !selectedCategory
@@ -205,12 +169,12 @@ export default function Index() {
           style={{
             flex: 1,
             position: 'relative',
-            marginBottom: 110
+            marginBottom: 100
           }}
         >
           {/* LISTA DE CATEGORIAS (Fica no fundo) */}
           <List
-            data={categorias}
+            data={categories}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <CategoryCard
