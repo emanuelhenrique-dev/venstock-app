@@ -5,6 +5,7 @@ import { List } from '@/components/List';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { products } from '@/database/storage';
+import { cart as cartMock } from '@/database/storage';
 import { colors, fontFamily } from '@/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -16,6 +17,8 @@ export default function Cart() {
     'sale'
   );
 
+  const [items, setItems] = useState(cartMock);
+
   const [saleMethod, setSaleMethod] = useState('money');
   const [withdrawalMethod, setWithdrawalMethod] = useState('avaria');
   const [description, setDescription] = useState('');
@@ -25,6 +28,21 @@ export default function Cart() {
     transactionType === 'sale' ? saleMethod : withdrawalMethod;
   const currentChangeMethod =
     transactionType === 'sale' ? setSaleMethod : setWithdrawalMethod;
+
+  // Função para atualizar a quantidade de um item específico
+  function handleUpdateQuantity(cartId: string, newQuantity: number) {
+    setItems((state) =>
+      state.map((item) =>
+        item.id === cartId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  }
+
+  // Fazemos o merge com os detalhes dos produtos
+  const cartWithDetails = items.map((cartItem) => {
+    const product = products.find((p) => p.id === cartItem.productId);
+    return { ...product, ...cartItem };
+  });
 
   return (
     <SafeAreaView
@@ -52,11 +70,13 @@ export default function Cart() {
       <KeyboardWrapper scrollView={false}>
         <View style={{ flex: 1, marginTop: 20, gap: 20 }}>
           <List
-            data={products}
+            data={cartWithDetails}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <ProductCard
                 data={item}
+                quantity={item.quantity}
+                onChangeQuantity={(val) => handleUpdateQuantity(item.id, val)}
                 variant={transactionType}
                 leftAction={{
                   icon: 'delete',
@@ -90,7 +110,9 @@ export default function Cart() {
                       includeFontPadding: false
                     }}
                   >
-                    {transactionType === 'sale' ? 'R$ 12,60 x 7' : '70 - 7'}
+                    {transactionType === 'sale'
+                      ? `R$ ${item.price.toFixed(2).replace('.', ',')} x ${item.quantity}`
+                      : `${item.qtdEstoque} - ${item.quantity}`}
                   </Text>
 
                   <MaterialIcons
@@ -115,7 +137,9 @@ export default function Cart() {
                       includeFontPadding: false
                     }}
                   >
-                    {transactionType === 'sale' ? 'R$ 88,20' : '63 em estoque'}
+                    {transactionType === 'sale'
+                      ? `R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}`
+                      : `${item.qtdEstoque - item.quantity} em estoque`}
                   </Text>
                 </View>
               </ProductCard>

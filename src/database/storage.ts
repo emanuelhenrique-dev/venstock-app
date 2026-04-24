@@ -118,3 +118,32 @@ export const products = [
     color: 'color-aqui'
   }
 ];
+
+// Mock dos produtos do cart
+export const cart = [
+  {
+    id: '1',
+    productId: '1',
+    quantity: 7
+  },
+  {
+    id: '2',
+    productId: '2',
+    quantity: 4
+  },
+  {
+    id: '3',
+    productId: '2',
+    quantity: 2
+  },
+  {
+    id: '4',
+    productId: '5',
+    quantity: 4
+  },
+  {
+    id: '5',
+    productId: '4',
+    quantity: 6
+  }
+];

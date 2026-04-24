@@ -112,6 +112,8 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
             renderItem={({ item }) => (
               <ProductCard
                 data={item}
+                quantity={0}
+                onChangeQuantity={(val) => console.log('mudarlog')}
                 leftAction={{
                   icon: 'edit',
                   onOpen: () => EditProduct(item.id)

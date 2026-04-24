@@ -23,6 +23,9 @@ interface Props extends ViewProps {
   };
   variant?: ProductCardVariant;
   children?: ReactNode;
+
+  quantity: number;
+  onChangeQuantity: (newQuantity: number) => void;
 }
 
 export function ProductCard({
@@ -30,9 +33,10 @@ export function ProductCard({
   leftAction,
   variant = 'stock',
   children,
+  quantity,
+  onChangeQuantity,
   ...rest
 }: Props) {
-  const [quantity, setQuantity] = useState(variant === 'stock' ? 0 : 1);
   const swipeableRef = useRef<SwipeableMethods | null>(null);
 
   async function handleSwipeable() {
@@ -40,17 +44,17 @@ export function ProductCard({
     await leftAction.onOpen();
   }
 
-  // Funções para manipular a quantidade
-  const handleAdd = () => setQuantity((prev) => (prev < 999 ? prev + 1 : 999));
+  // Funções agora apenas repassam a ordem para o pai
+  const handleAdd = () => {
+    if (quantity < 999) onChangeQuantity(quantity + 1);
+  };
+
   const handleRemove = () => {
-    setQuantity((prev) => {
-      // Se for estoque, permite chegar a 0
-      if (variant === 'stock') {
-        return prev > 0 ? prev - 1 : 0;
-      }
-      // Se for checkout, o mínimo é 1
-      return prev > 1 ? prev - 1 : 1;
-    });
+    if (variant === 'stock') {
+      if (quantity > 0) onChangeQuantity(quantity - 1);
+    } else {
+      if (quantity > 1) onChangeQuantity(quantity - 1);
+    }
   };
 
   // O que vai aparecer atrás do card
@@ -125,7 +129,7 @@ export function ProductCard({
         </View>
         {/* LÓGICA DO BOTÃO DINÂMICO */}
         <View style={styles.actionContainer}>
-          {quantity === 0 ? (
+          {quantity === 0 && variant === 'stock' ? (
             <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
               <MaterialIcons
                 name="add-shopping-cart"
@@ -142,8 +146,10 @@ export function ProductCard({
                   styles.qtyButton,
                   {
                     backgroundColor:
-                      variant === 'sale' ? colors.green[100] : colors.blue[100],
-                    opacity: quantity === 1 ? 0.4 : 1
+                      variant === 'withdrawal'
+                        ? colors.blue[100]
+                        : colors.green[100],
+                    opacity: quantity === 1 && variant !== 'stock' ? 0.4 : 1
                   }
                 ]}
               >
@@ -151,7 +157,9 @@ export function ProductCard({
                   name="remove"
                   size={16}
                   color={
-                    variant === 'sale' ? colors.green[500] : colors.blue[500]
+                    variant === 'withdrawal'
+                      ? colors.blue[500]
+                      : colors.green[500]
                   }
                 />
               </TouchableOpacity>
@@ -167,11 +175,9 @@ export function ProductCard({
                   if (variant !== 'stock' && finalValue < 1) finalValue = 1;
 
                   // Se o valor for maior que 999, trava no 999
-                  if (finalValue > 999) {
-                    setQuantity(999);
-                  } else {
-                    setQuantity(finalValue);
-                  }
+                  if (finalValue > 999) finalValue = 999;
+
+                  onChangeQuantity(finalValue);
                 }}
                 cursorColor={colors.blue[400]}
                 keyboardType="numeric"
@@ -184,9 +190,9 @@ export function ProductCard({
               >
                 <LinearGradient
                   colors={
-                    variant === 'sale'
-                      ? [colors.green[400], colors.green[500]]
-                      : [colors.blue[400], colors.blue[500]]
+                    variant === 'withdrawal'
+                      ? [colors.blue[400], colors.blue[500]]
+                      : [colors.green[400], colors.green[500]]
                   }
                   style={styles.qtyButton}
                 >
