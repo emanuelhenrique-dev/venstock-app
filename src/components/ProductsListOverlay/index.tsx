@@ -12,6 +12,7 @@ import { ProductCard } from '../ProductCard';
 import { selectedCategoryProps } from '@/app/(dashboard)';
 import { CustomImage } from '../CustomImage';
 import { router } from 'expo-router';
+import { products } from '@/database/storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -34,55 +35,6 @@ interface Props {
 }
 
 export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
-  // Mock dos produtos (como no seu Index anterior)
-  const produtosGelados: ProductCardProps[] = [
-    {
-      id: '1',
-      name: 'Picolé de Fruta',
-      price: 12.6,
-      qtdEstoque: 70,
-      qtdVendidos: 30,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '2',
-      name: 'Picolé de Leite',
-      price: 15.0,
-      qtdEstoque: 25,
-      qtdVendidos: 15,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '3',
-      name: 'Saco de Gelo (Cubo)',
-      price: 8.5,
-      qtdEstoque: 45,
-      qtdVendidos: 12,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '4',
-      name: 'Geladinho de chocolate',
-      price: 2.0,
-      qtdEstoque: 30,
-      qtdVendidos: 8,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    },
-    {
-      id: '5',
-      name: 'Sorvete Napolitano',
-      price: 22.0,
-      qtdEstoque: 12,
-      qtdVendidos: 4,
-      imageUrl: 'url-aqui',
-      color: 'color-aqui'
-    }
-  ];
-
   async function EditProduct(id: string) {
     try {
       Alert.alert('Editar', 'Realmente deseja editar esse produto?', [
@@ -155,7 +107,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
             </TouchableOpacity>
           </View>
           <List
-            data={produtosGelados}
+            data={products}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <ProductCard
@@ -168,7 +120,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
             )}
             containerStyle={{ flex: 1 }}
             snapToInterval={100}
-          ></List>
+          />
         </MotiView>
       )}
     </AnimatePresence>

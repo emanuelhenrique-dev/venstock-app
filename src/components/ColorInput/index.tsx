@@ -1,9 +1,5 @@
 import { Text, TouchableOpacity, View } from 'react-native';
-import {
-  ColorPalette,
-  ColorPicker,
-  ColorPickerDialog
-} from 'react-native-ui-lib';
+import { ColorPickerDialog } from 'react-native-ui-lib';
 import { styles } from './styles';
 import { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';

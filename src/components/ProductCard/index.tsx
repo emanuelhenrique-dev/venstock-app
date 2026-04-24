@@ -14,7 +14,7 @@ import { RectButton, TextInput } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Input } from '../Input';
 
-type ProductCardVariant = 'stock' | 'sell' | 'remove';
+type ProductCardVariant = 'stock' | 'sale' | 'withdrawal';
 interface Props extends ViewProps {
   data: ProductCardProps;
   leftAction: {
@@ -32,7 +32,7 @@ export function ProductCard({
   children,
   ...rest
 }: Props) {
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(variant === 'stock' ? 0 : 1);
   const swipeableRef = useRef<SwipeableMethods | null>(null);
 
   async function handleSwipeable() {
@@ -42,7 +42,16 @@ export function ProductCard({
 
   // Funções para manipular a quantidade
   const handleAdd = () => setQuantity((prev) => (prev < 999 ? prev + 1 : 999));
-  const handleRemove = () => setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
+  const handleRemove = () => {
+    setQuantity((prev) => {
+      // Se for estoque, permite chegar a 0
+      if (variant === 'stock') {
+        return prev > 0 ? prev - 1 : 0;
+      }
+      // Se for checkout, o mínimo é 1
+      return prev > 1 ? prev - 1 : 1;
+    });
+  };
 
   // O que vai aparecer atrás do card
   const renderLeftActions = () => (
@@ -100,7 +109,7 @@ export function ProductCard({
           </Text>
           <View style={styles.details}>
             {children ? (
-              children // Se você passou algo personalizado, ele renderiza aqui
+              children
             ) : (
               // Se não passou nada, renderiza o preço padrão (Fallback)
               <Text
@@ -128,15 +137,22 @@ export function ProductCard({
             <View style={styles.quantityContainer}>
               <TouchableOpacity
                 onPress={handleRemove}
+                disabled={variant !== 'stock' && quantity === 1}
                 style={[
                   styles.qtyButton,
-                  { backgroundColor: colors.green[100] }
+                  {
+                    backgroundColor:
+                      variant === 'sale' ? colors.green[100] : colors.blue[100],
+                    opacity: quantity === 1 ? 0.4 : 1
+                  }
                 ]}
               >
                 <MaterialIcons
                   name="remove"
                   size={16}
-                  color={colors.green[500]}
+                  color={
+                    variant === 'sale' ? colors.green[500] : colors.blue[500]
+                  }
                 />
               </TouchableOpacity>
               <TextInput
@@ -145,7 +161,10 @@ export function ProductCard({
                 onChangeText={(text) => {
                   // Remove qualquer coisa que não seja número
                   const numericValue = text.replace(/[^0-9]/g, '');
-                  const finalValue = parseInt(numericValue) || 0;
+                  let finalValue = parseInt(numericValue) || 0;
+
+                  // Se estiver no checkout, não deixa apagar e ficar vazio ou 0
+                  if (variant !== 'stock' && finalValue < 1) finalValue = 1;
 
                   // Se o valor for maior que 999, trava no 999
                   if (finalValue > 999) {
@@ -160,10 +179,15 @@ export function ProductCard({
               />
               <TouchableOpacity
                 onPress={handleAdd}
-                style={{ opacity: quantity >= 999 ? 0.1 : 1 }}
+                disabled={quantity >= 999}
+                style={{ opacity: quantity >= 999 ? 0.4 : 1 }}
               >
                 <LinearGradient
-                  colors={[colors.green[400], colors.green[500]]}
+                  colors={
+                    variant === 'sale'
+                      ? [colors.green[400], colors.green[500]]
+                      : [colors.blue[400], colors.blue[500]]
+                  }
                   style={styles.qtyButton}
                 >
                   <MaterialIcons name="add" size={16} color={colors.white} />

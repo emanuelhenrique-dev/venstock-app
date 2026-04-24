@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { categories } from '@/database/categories';
+import { categories } from '@/database/storage';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {

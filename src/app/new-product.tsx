@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { categories } from '@/database/categories';
+import { categories } from '@/database/storage';
 import { ScannerButton } from '@/components/ScannerButton';
 
 export default function ProductForm() {
@@ -173,7 +173,7 @@ export default function ProductForm() {
               >
                 <ScannerButton
                   onScanResult={(codigo) => {
-                    setCodBar(codigo); // O valor volta do componente e preenche o input!
+                    setCodBar(codigo);
                     console.log('Produto escaneado:', codigo);
                   }}
                 />

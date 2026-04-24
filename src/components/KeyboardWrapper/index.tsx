@@ -11,10 +11,15 @@ import { colors } from '@/theme';
 
 interface ScreenWrapperProps
   extends KeyboardAvoidingViewProps, ScrollViewProps {
+  scrollView?: boolean;
   children: React.ReactNode;
 }
 
-export function KeyboardWrapper({ children, ...rest }: ScreenWrapperProps) {
+export function KeyboardWrapper({
+  scrollView = true,
+  children,
+  ...rest
+}: ScreenWrapperProps) {
   const [flexToggle, setFlexToggle] = useState(false);
 
   useEffect(() => {
@@ -37,14 +42,18 @@ export function KeyboardWrapper({ children, ...rest }: ScreenWrapperProps) {
       style={flexToggle ? { flexGrow: 1 } : { flex: 1 }}
       enabled={!flexToggle}
     >
-      <ScrollView
-        style={{ flex: 1, backgroundColor: colors.white }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ ...rest }.contentContainerStyle}
-      >
-        {children}
-      </ScrollView>
+      {scrollView ? (
+        <ScrollView
+          style={{ flex: 1, backgroundColor: colors.white }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ ...rest }.contentContainerStyle}
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <>{children}</>
+      )}
     </KeyboardAvoidingView>
   );
 }
