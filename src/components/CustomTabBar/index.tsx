@@ -11,6 +11,7 @@ import Animated, {
 import { styles } from './styles';
 import { colors } from '@/theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useCartStore } from '@/store/useCartStore';
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -20,6 +21,12 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
   descriptors,
   navigation
 }) => {
+  const { getNumber } = useCartStore();
+  const cartNumberItems = () => {
+    const number = getNumber();
+    return number > 99 ? 99 : number;
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.separatorLine} />
@@ -61,10 +68,24 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
               }
             ]}
           >
-            {getIconByRouteName(
-              route.name,
-              isFocused ? colors.blue[400] : colors.gray[400]
-            )}
+            <View style={{ position: 'relative' }}>
+              {getIconByRouteName(
+                route.name,
+                isFocused ? colors.blue[400] : colors.gray[400]
+              )}
+              {route.name === 'cart' && (
+                <View
+                  style={[
+                    styles.badge,
+                    { opacity: cartNumberItems() > 0 ? 1 : 0 }
+                  ]}
+                >
+                  <Text style={{ color: colors.white, fontSize: 10 }}>
+                    {cartNumberItems()}
+                  </Text>
+                </View>
+              )}
+            </View>
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}

@@ -38,8 +38,7 @@ export default function DashboardLayout() {
         <Tabs.Screen
           name="cart"
           options={{
-            title: 'Cart',
-            tabBarBadge: 3
+            freezeOnBlur: true
           }}
         />
         <Tabs.Screen

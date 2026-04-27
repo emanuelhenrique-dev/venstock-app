@@ -16,14 +16,13 @@ interface Props<T> extends FlatListProps<T> {
 }
 
 export function List<T>({
-  emptyMessage,
   containerStyle,
   data,
   renderItem,
   ...rest
 }: Props<T>) {
   return (
-    <View style={[{ flex: 1 }, styles.content, containerStyle]}>
+    <View style={[{ flex: 1, height: '100%' }, styles.content, containerStyle]}>
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -32,9 +31,6 @@ export function List<T>({
         )}
         contentContainerStyle={[styles.listContent]}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
-          <Text style={styles.empty}>{emptyMessage}</Text>
-        )}
         {...rest}
       />
     </View>

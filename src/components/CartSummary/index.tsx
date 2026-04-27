@@ -11,19 +11,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/theme';
 import { useState } from 'react';
 import { green, opacity } from 'react-native-reanimated/lib/typescript/Colors';
+import { numberToCurrency } from '@/utils/numberToCurrency';
 
 interface CartSummaryProps extends TextInputProps {
   type: 'sale' | 'withdrawal';
-  onChangeType: (type: 'sale' | 'withdrawal') => void;
   method: string;
+  total: number;
+  onChangeType: (type: 'sale' | 'withdrawal') => void;
   onChangeMethod: (method: string) => void;
 }
 
 export function CartSummary({
   type,
-  onChangeType,
   method,
+  total,
   onChangeMethod,
+  onChangeType,
   ...rest
 }: CartSummaryProps) {
   const Icons: Record<string, any> = {
@@ -167,7 +170,7 @@ export function CartSummary({
             <>
               <View style={styles.summaryContent}>
                 <Text style={styles.text}>Subtotal:</Text>
-                <Text style={styles.text}>R$ 262,90</Text>
+                <Text style={styles.text}>{numberToCurrency(total)}</Text>
               </View>
               <View style={styles.summaryContent}>
                 <Text style={styles.text}>Taxa/Serviço:</Text>
@@ -177,7 +180,9 @@ export function CartSummary({
                 <Text style={[styles.text, { fontSize: 16 }]}>
                   Preço total:
                 </Text>
-                <Text style={[styles.text, { fontSize: 16 }]}>R$ 262,90</Text>
+                <Text style={[styles.text, { fontSize: 16 }]}>
+                  {numberToCurrency(total)}
+                </Text>
               </View>
             </>
           ) : (

@@ -1,15 +1,17 @@
 import { CartSummary } from '@/components/CartSummary';
 import { CategoryCard } from '@/components/CategoryCard';
+import { EmptyComponent } from '@/components/EmptyComponent';
 import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { List } from '@/components/List';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
-import { products } from '@/database/storage';
-import { cart as cartMock } from '@/database/storage';
+import { products as allProducts } from '@/database/storage';
+import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
+import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { StatusBar, Text, View } from 'react-native';
+import { Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Cart() {
@@ -17,11 +19,13 @@ export default function Cart() {
     'sale'
   );
 
-  const [items, setItems] = useState(cartMock);
-
   const [saleMethod, setSaleMethod] = useState('money');
   const [withdrawalMethod, setWithdrawalMethod] = useState('avaria');
   const [description, setDescription] = useState('');
+
+  const { items, updateQuantity, removeItem, getTotal } = useCartStore();
+
+  const total = getTotal(allProducts);
 
   // Lógica para decidir qual método e qual função de alteração enviar
   const currentMethod =
@@ -29,20 +33,40 @@ export default function Cart() {
   const currentChangeMethod =
     transactionType === 'sale' ? setSaleMethod : setWithdrawalMethod;
 
-  // Função para atualizar a quantidade de um item específico
-  function handleUpdateQuantity(cartId: string, newQuantity: number) {
-    setItems((state) =>
-      state.map((item) =>
-        item.id === cartId ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  }
-
   // Fazemos o merge com os detalhes dos produtos
   const cartWithDetails = items.map((cartItem) => {
-    const product = products.find((p) => p.id === cartItem.productId);
+    const product = allProducts.find((p) => p.id === cartItem.productId);
     return { ...product, ...cartItem };
   });
+
+  async function RemoveProduct(id: string) {
+    try {
+      Alert.alert(
+        'Remover',
+        'Realmente deseja remover esse produto do seu carrinho?',
+        [
+          {
+            text: 'não',
+            style: 'cancel',
+            onPress: () => {
+              console.warn('Cancelando Remover produto', id);
+            }
+          },
+          {
+            text: 'sim',
+            style: 'destructive',
+            onPress: () => {
+              console.warn('editar produto', id);
+              removeItem(id);
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível remover o Produto');
+      console.log(error);
+    }
+  }
 
   return (
     <SafeAreaView
@@ -72,15 +96,27 @@ export default function Cart() {
           <List
             data={cartWithDetails}
             keyExtractor={(item) => item.id}
+            ListEmptyComponent={
+              <EmptyComponent
+                text="Seu carrinho está vazio"
+                subtext="Nenhum item encontrado no seu carrinho"
+                icon="cart-outline"
+                color={
+                  transactionType === 'withdrawal'
+                    ? colors.blue[500]
+                    : colors.green[500]
+                }
+              />
+            }
             renderItem={({ item }) => (
               <ProductCard
                 data={item}
                 quantity={item.quantity}
-                onChangeQuantity={(val) => handleUpdateQuantity(item.id, val)}
+                onChangeQuantity={(val) => updateQuantity(item.id, val)}
                 variant={transactionType}
                 leftAction={{
                   icon: 'delete',
-                  onOpen: () => console.log(item.id)
+                  onOpen: () => RemoveProduct(item.id)
                 }}
               >
                 <View
@@ -111,7 +147,7 @@ export default function Cart() {
                     }}
                   >
                     {transactionType === 'sale'
-                      ? `R$ ${item.price.toFixed(2).replace('.', ',')} x ${item.quantity}`
+                      ? `${numberToCurrency(item.price)} x ${item.quantity}`
                       : `${item.qtdEstoque} - ${item.quantity}`}
                   </Text>
 
@@ -138,7 +174,7 @@ export default function Cart() {
                     }}
                   >
                     {transactionType === 'sale'
-                      ? `R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}`
+                      ? `${numberToCurrency(item.price * item.quantity)}`
                       : `${item.qtdEstoque - item.quantity} em estoque`}
                   </Text>
                 </View>
@@ -154,6 +190,7 @@ export default function Cart() {
             onChangeMethod={currentChangeMethod}
             value={description}
             onChangeText={setDescription}
+            total={total}
           />
         </View>
       </KeyboardWrapper>

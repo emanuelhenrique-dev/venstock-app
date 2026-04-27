@@ -13,6 +13,7 @@ import Swipeable, {
 import { RectButton, TextInput } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Input } from '../Input';
+import { numberToCurrency } from '@/utils/numberToCurrency';
 
 type ProductCardVariant = 'stock' | 'sale' | 'withdrawal';
 interface Props extends ViewProps {
@@ -122,7 +123,7 @@ export function ProductCard({
                   { color: colors.green[500], fontSize: 12 }
                 ]}
               >
-                R$ {data.price.toFixed(2).replace('.', ',')}
+                {numberToCurrency(data.price)}
               </Text>
             )}
           </View>
@@ -166,6 +167,7 @@ export function ProductCard({
               <TextInput
                 style={styles.quantityText}
                 value={quantity.toString()}
+                readOnly={variant === 'stock'}
                 onChangeText={(text) => {
                   // Remove qualquer coisa que não seja número
                   const numericValue = text.replace(/[^0-9]/g, '');

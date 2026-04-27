@@ -13,6 +13,7 @@ import { selectedCategoryProps } from '@/app/(dashboard)';
 import { CustomImage } from '../CustomImage';
 import { router } from 'expo-router';
 import { products } from '@/database/storage';
+import { useCartStore } from '@/store/useCartStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -35,6 +36,8 @@ interface Props {
 }
 
 export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
+  const { items, addItem, updateQuantity, removeItem } = useCartStore();
+
   async function EditProduct(id: string) {
     try {
       Alert.alert('Editar', 'Realmente deseja editar esse produto?', [
@@ -109,17 +112,37 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
           <List
             data={products}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ProductCard
-                data={item}
-                quantity={0}
-                onChangeQuantity={(val) => console.log('mudarlog')}
-                leftAction={{
-                  icon: 'edit',
-                  onOpen: () => EditProduct(item.id)
-                }}
-              />
-            )}
+            renderItem={({ item }) => {
+              //Buscamos se o produto já existe no carrinho
+              const cartItem = items.find((cart) => cart.productId === item.id);
+              const currentQuantity = cartItem ? cartItem.quantity : 0;
+
+              return (
+                <ProductCard
+                  data={item}
+                  quantity={currentQuantity}
+                  onChangeQuantity={(newQty) => {
+                    //Adicionando novo item ao carrinho
+                    if (currentQuantity === 0 && newQty > 0) {
+                      addItem({
+                        id: String(Date.now()),
+                        productId: item.id,
+                        quantity: 1
+                      });
+                    } else if (newQty === 0) {
+                      //Removendo se chegar a zero
+                      if (cartItem) removeItem(cartItem.id);
+                    } else {
+                      if (cartItem) updateQuantity(cartItem.id, newQty);
+                    }
+                  }}
+                  leftAction={{
+                    icon: 'edit',
+                    onOpen: () => EditProduct(item.id)
+                  }}
+                />
+              );
+            }}
             containerStyle={{ flex: 1 }}
             snapToInterval={100}
           />
