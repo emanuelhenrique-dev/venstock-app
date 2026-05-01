@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useState } from 'react'; // Importante para o Swipeable funcionar bem
+import React, { memo, ReactNode, useRef, useState } from 'react'; // Importante para o Swipeable funcionar bem
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, ViewProps, View, TouchableOpacity } from 'react-native';
 import { styles } from './styles';
@@ -29,7 +29,7 @@ interface Props extends ViewProps {
   onChangeQuantity: (newQuantity: number) => void;
 }
 
-export function ProductCard({
+function ProductCardComponent({
   data,
   leftAction,
   variant = 'stock',
@@ -208,3 +208,16 @@ export function ProductCard({
     </Swipeable>
   );
 }
+
+// Exporte usando o memo com uma função de comparação
+export const ProductCard = memo(
+  ProductCardComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.quantity === nextProps.quantity &&
+      prevProps.data.id === nextProps.data.id &&
+      prevProps.data.qtdEstoque === nextProps.data.qtdEstoque &&
+      prevProps.data.qtdVendidos === nextProps.data.qtdVendidos
+    );
+  }
+);

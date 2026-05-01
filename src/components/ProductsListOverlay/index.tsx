@@ -1,9 +1,16 @@
 // src/components/ProductsListOverlay/index.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import { Alert, Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
 import { colors } from '@/theme';
 import { List } from '../List';
@@ -14,6 +21,9 @@ import { CustomImage } from '../CustomImage';
 import { router } from 'expo-router';
 import { products } from '@/database/storage';
 import { useCartStore } from '@/store/useCartStore';
+import { Loading } from '../Loading';
+import { ProductSkeleton } from '../ProductSkeleton';
+import { Separator } from '../Separator';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,6 +47,7 @@ interface Props {
 
 export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
   const { items, addItem, updateQuantity, removeItem } = useCartStore();
+  const [canRenderList, setCanRenderList] = useState(false);
 
   async function EditProduct(id: string) {
     try {
@@ -62,6 +73,16 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
       console.log(error);
     }
   }
+
+  // Só mostra a lista após a animação de entrada acabar (250ms)
+  useEffect(() => {
+    if (selectedCategory) {
+      const timer = setTimeout(() => setCanRenderList(true), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setCanRenderList(false);
+    }
+  }, [selectedCategory]);
 
   return (
     <AnimatePresence>
@@ -109,43 +130,60 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
               <MaterialIcons name="share" size={20} color={colors.black} />
             </TouchableOpacity>
           </View>
-          <List
-            data={products}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              //Buscamos se o produto já existe no carrinho
-              const cartItem = items.find((cart) => cart.productId === item.id);
-              const currentQuantity = cartItem ? cartItem.quantity : 0;
+          {canRenderList ? (
+            <List
+              data={products}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                //Buscamos se o produto já existe no carrinho
+                const cartItem = items.find(
+                  (cart) => cart.productId === item.id
+                );
+                const currentQuantity = cartItem ? cartItem.quantity : 0;
 
-              return (
-                <ProductCard
-                  data={item}
-                  quantity={currentQuantity}
-                  onChangeQuantity={(newQty) => {
-                    //Adicionando novo item ao carrinho
-                    if (currentQuantity === 0 && newQty > 0) {
-                      addItem({
-                        id: String(Date.now()),
-                        productId: item.id,
-                        quantity: 1
-                      });
-                    } else if (newQty === 0) {
-                      //Removendo se chegar a zero
-                      if (cartItem) removeItem(cartItem.id);
-                    } else {
-                      if (cartItem) updateQuantity(cartItem.id, newQty);
-                    }
-                  }}
-                  leftAction={{
-                    icon: 'edit',
-                    onOpen: () => EditProduct(item.id)
-                  }}
-                />
-              );
-            }}
-            containerStyle={{ flex: 1 }}
-            snapToInterval={100}
-          />
+                return (
+                  <ProductCard
+                    data={item}
+                    quantity={currentQuantity}
+                    onChangeQuantity={(newQty) => {
+                      //Adicionando novo item ao carrinho
+                      if (currentQuantity === 0 && newQty > 0) {
+                        addItem({
+                          id: String(Date.now()),
+                          productId: item.id,
+                          quantity: 1
+                        });
+                      } else if (newQty === 0) {
+                        //Removendo se chegar a zero
+                        if (cartItem) removeItem(cartItem.id);
+                      } else {
+                        if (cartItem) updateQuantity(cartItem.id, newQty);
+                      }
+                    }}
+                    leftAction={{
+                      icon: 'edit',
+                      onOpen: () => EditProduct(item.id)
+                    }}
+                  />
+                );
+              }}
+              containerStyle={{ flex: 1 }}
+              snapToInterval={100}
+            />
+          ) : (
+            // Renderiza 5 ou 6 esqueletos fixos enquanto a animação termina
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+            >
+              {[1, 2, 3, 4, 5].map((key) => (
+                <React.Fragment key={key}>
+                  <ProductSkeleton />
+                </React.Fragment>
+              ))}
+            </ScrollView>
+          )}
         </MotiView>
       )}
     </AnimatePresence>

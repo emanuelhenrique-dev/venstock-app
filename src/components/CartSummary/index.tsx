@@ -196,7 +196,11 @@ export function CartSummary({
             />
           )}
         </View>
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[styles.button, { opacity: total <= 0 ? 0.7 : 1 }]}
+          activeOpacity={0.8}
+          disabled={total <= 0}
+        >
           <Text
             style={[
               styles.text,

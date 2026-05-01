@@ -3,30 +3,25 @@ import { CategoryCard } from '@/components/CategoryCard';
 import { EmptyComponent } from '@/components/EmptyComponent';
 import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { List } from '@/components/List';
+import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
+import { ProductCardProps } from '@/components/ProductsListOverlay';
 import { products as allProducts } from '@/database/storage';
 import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type ProductsCart = {
+export interface CartItemDetailed {
   cartId: string;
   quantity: number;
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    qtdEstoque: number;
-    qtdVendidos: number;
-    imageUrl: string;
-    color: string;
-  };
-};
+  product: ProductCardProps;
+}
 
 export default function Cart() {
   const [transactionType, setTransactionType] = useState<'sale' | 'withdrawal'>(
@@ -37,6 +32,7 @@ export default function Cart() {
   const [withdrawalMethod, setWithdrawalMethod] = useState('avaria');
   const [description, setDescription] = useState('');
 
+  const [isFetching, setIsFetching] = useState(true);
   const { items, updateQuantity, removeItem, getTotal } = useCartStore();
 
   const total = getTotal(allProducts);
@@ -48,20 +44,25 @@ export default function Cart() {
     transactionType === 'sale' ? setSaleMethod : setWithdrawalMethod;
 
   // Fazemos o merge com os detalhes dos produtos
-  const cartWithDetails: ProductsCart = items.map((cartItem) => {
-    const product = allProducts.find((p) => p.id === cartItem.productId);
+  const cartWithDetails = useMemo(() => {
+    return items
+      .map((cartItem) => {
+        const product = allProducts.find((p) => p.id === cartItem.productId);
+        if (!product) return null;
 
-    return {
-      cartId: cartItem.id, // ID da entrada no carrinho
-      quantity: cartItem.quantity,
-      product: product // O objeto do produto inteiro aqui dentro
-    };
-  });
+        return {
+          cartId: cartItem.id,
+          quantity: cartItem.quantity,
+          product: product
+        } as CartItemDetailed;
+      })
+      .filter((item): item is CartItemDetailed => item !== null);
+  }, [items]); // Só recalcula se os itens do carrinho mudarem
 
   async function RemoveProduct(id: string) {
     try {
       Alert.alert(
-        'Remover',
+        'Remover do carrinho',
         'Realmente deseja remover esse produto do seu carrinho?',
         [
           {
@@ -86,6 +87,22 @@ export default function Cart() {
       console.log(error);
     }
   }
+
+  async function loadResources() {
+    try {
+      setIsFetching(true);
+      // Simulando delay de leitura de banco de dados
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível carregar o carrinho');
+    } finally {
+      setIsFetching(false);
+    }
+  }
+
+  useEffect(() => {
+    loadResources();
+  }, []);
 
   return (
     <SafeAreaView
@@ -112,23 +129,27 @@ export default function Cart() {
       />
       <KeyboardWrapper scrollView={false}>
         <View style={{ flex: 1, marginTop: 20, gap: 20 }}>
-          <List
-            data={cartWithDetails}
-            keyExtractor={(item) => item.cartId}
-            ListEmptyComponent={
-              <EmptyComponent
-                text="Seu carrinho está vazio"
-                subtext="Nenhum item encontrado no seu carrinho"
-                icon="cart-outline"
-                color={
-                  transactionType === 'withdrawal'
-                    ? colors.blue[500]
-                    : colors.green[500]
-                }
-              />
-            }
-            renderItem={({ item }) =>
-              item.product ? (
+          {!isFetching ? (
+            <List
+              data={cartWithDetails}
+              keyExtractor={(item) => item.cartId}
+              ListEmptyComponent={
+                <EmptyComponent
+                  text="Seu carrinho está vazio"
+                  subtext="Adicione produtos ao seu carrinho"
+                  icon={
+                    transactionType === 'withdrawal'
+                      ? 'archive-arrow-down-outline'
+                      : 'cart-outline'
+                  }
+                  color={
+                    transactionType === 'withdrawal'
+                      ? colors.blue[500]
+                      : colors.green[500]
+                  }
+                />
+              }
+              renderItem={({ item }) => (
                 <ProductCard
                   data={item.product}
                   quantity={item.quantity}
@@ -199,11 +220,13 @@ export default function Cart() {
                     </Text>
                   </View>
                 </ProductCard>
-              ) : null
-            }
-            containerStyle={{ flex: 1 }}
-            snapToInterval={100}
-          />
+              )}
+              containerStyle={{ flex: 1 }}
+              snapToInterval={100}
+            />
+          ) : (
+            <Loading width={300} height={300} />
+          )}
 
           <CartSummary
             type={transactionType}
