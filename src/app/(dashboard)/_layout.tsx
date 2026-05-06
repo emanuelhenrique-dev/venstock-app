@@ -38,19 +38,20 @@ export default function DashboardLayout() {
         <Tabs.Screen
           name="cart"
           options={{
+            title: 'Vendas',
             freezeOnBlur: true
           }}
         />
         <Tabs.Screen
           name="cashier"
           options={{
-            title: 'Cashier'
+            title: 'Caixa'
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'User'
+            title: 'Usuário'
           }}
         />
       </Tabs>
