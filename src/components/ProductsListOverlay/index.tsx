@@ -168,7 +168,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                 );
               }}
               containerStyle={{ flex: 1 }}
-              snapToInterval={100}
+              snapToInterval={80}
             />
           ) : (
             // Renderiza 5 ou 6 esqueletos fixos enquanto a animação termina

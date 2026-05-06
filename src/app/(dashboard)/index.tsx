@@ -169,7 +169,7 @@ export default function Index() {
           style={{
             flex: 1,
             position: 'relative',
-            marginBottom: 100
+            marginBottom: 110
           }}
         >
           {/* LISTA DE CATEGORIAS (Fica no fundo) */}
