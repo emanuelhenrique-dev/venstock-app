@@ -110,6 +110,13 @@ export const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 25
   },
+  removeButton: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    zIndex: 100,
+    padding: 10
+  },
 
   // Rodapé do Compartimento
   footer: {

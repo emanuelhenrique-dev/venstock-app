@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
 
@@ -40,9 +40,54 @@ interface props {
 export function HistoryCard({ data, isOpen, onPress }: props) {
   const isPix = data.type === 'pix';
 
+  async function RemoveHistoryItem(id: string, type: string) {
+    try {
+      Alert.alert(
+        `Remover ${type}`,
+        `Deseja remover essa ${type}? Os itens voltarão para a lista de produtos.`,
+        [
+          {
+            text: 'não',
+            style: 'cancel',
+            onPress: () => {
+              console.warn('Remoção cancelada', id);
+            }
+          },
+          {
+            text: 'sim',
+            style: 'destructive',
+            onPress: () => {
+              console.warn(`${type} removida com sucesso de id`, id);
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Erro', `Não foi possível remover a ${type}`);
+      console.log(error);
+    }
+  }
+
   return (
     <View style={styles.cardContainer}>
       <Text style={styles.dateText}>{data.date}</Text>
+      {data.type === 'general' && (
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() =>
+            RemoveHistoryItem(
+              data.id,
+              data.category === 'sale' ? 'Venda' : 'Retirada'
+            )
+          }
+        >
+          <MaterialIcons
+            name="remove-circle"
+            color={colors.red[500]}
+            size={24}
+          />
+        </TouchableOpacity>
+      )}
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={onPress}

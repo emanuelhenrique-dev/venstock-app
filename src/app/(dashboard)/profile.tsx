@@ -1,15 +1,20 @@
 import { CustomImage } from '@/components/CustomImage';
+import { OptionCard } from '@/components/OptionCard';
 import { PageHeader } from '@/components/PageHeader';
 
 import { userStorage } from '@/database/userStorage';
-import { colors } from '@/theme';
+import { colors, fontFamily } from '@/theme';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Index from '..';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function User() {
   const [userName, setUserName] = useState('');
   const [userImage, setUserImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState(true);
 
   const { getUserData } = userStorage();
 
@@ -34,19 +39,15 @@ export default function User() {
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingVertical: 52
-      }}
-    >
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
+
+      {/* Header com Foto e Nome */}
       <View
         style={{
-          justifyContent: 'center',
           alignItems: 'center',
-          paddingTop: 24,
-          paddingHorizontal: 24,
+          paddingTop: 50,
+
           zIndex: 1
         }}
       >
@@ -54,30 +55,95 @@ export default function User() {
           image={userImage}
           size={130}
           color={colors.green[400]}
-          style={{ marginBottom: 20 }}
+          style={{ zIndex: 1 }}
         />
-        <PageHeader
-          title1={userName}
-          title2=""
-          subtitle="Configurações de conta e visão geral do sistema."
-          gradient={[colors.green[400], colors.green[500]]}
-          style={{ paddingTop: 0 }}
-        />
+        <View
+          style={{
+            width: '100%',
+            marginTop: -20,
+            paddingTop: 30,
+            paddingBottom: 22,
+            alignItems: 'center',
+            backgroundColor: colors.gray[150]
+          }}
+        >
+          <Text style={{ fontSize: 24, fontFamily: fontFamily.semiBold }}>
+            {userName}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              fontFamily: fontFamily.regular,
+              color: colors.gray[600],
+              textAlign: 'center',
+              paddingHorizontal: 40
+            }}
+          >
+            Configurações de conta e visão geral do sistema.
+          </Text>
+        </View>
       </View>
 
+      {/* LISTA DE OPÇÕES */}
       <View
         style={{
-          marginTop: -150,
-          marginBottom: 80,
+          marginBottom: 82,
           gap: 24,
-          backgroundColor: colors.gray[100],
+          backgroundColor: colors.gray[150],
           flex: 1,
-          paddingTop: 172,
-          paddingHorizontal: 24
+          paddingHorizontal: 24,
+          marginTop: -160
         }}
       >
-        <Text>Lista aqui</Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            flexGrow: 1,
+            gap: 8,
+            paddingTop: 160,
+            paddingBottom: 10
+          }}
+        >
+          <OptionCard
+            title="Editar Perfil"
+            subtitle="Configure seu perfil"
+            icon="person"
+            onPress={() => console.log('perfil')}
+          />
+
+          <OptionCard
+            title="Gerenciamento de contas"
+            subtitle="Adicionar novo usuário ou editar um usuário."
+            icon="sell"
+            onPress={() => console.log('contas')}
+            disabled
+          />
+
+          <OptionCard
+            title="Sua Estatística"
+            subtitle="Seu estoque teve 12 movimentações nos últimos 7 dias. Veja aqui."
+            icon="local-offer" // O ícone de tag da imagem
+            onPress={() => console.log('stats')}
+          />
+
+          <OptionCard
+            title="Permitir Notificações"
+            subtitle="Notificar quando os produtos estiverem em baixa."
+            icon="notifications-none"
+            isSwitch
+            switchValue={notifications}
+            onSwitchChange={setNotifications}
+          />
+
+          <OptionCard
+            title="Sair"
+            subtitle="Sair da conta atual."
+            icon="door-back"
+            onPress={() => console.log('sair')}
+            destructiveIcon="logout"
+          />
+        </ScrollView>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
