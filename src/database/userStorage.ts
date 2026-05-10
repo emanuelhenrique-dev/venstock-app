@@ -3,15 +3,22 @@ import { Alert } from 'react-native';
 
 const USER_NAME_KEY = '@venstock:user_name-1.0.1';
 const USER_IMAGE_KEY = '@venstock:user_image-1.0.1';
+const USER_COLOR_KEY = '@venstock:user_color-1.0.1';
 
 export function userStorage() {
   // Salvar usuário
-  async function saveUserData(name: string, image: string | null) {
+  async function saveUserData(
+    name: string,
+    image: string | null,
+    color: string
+  ) {
     try {
       await AsyncStorage.setItem(USER_NAME_KEY, name);
+
       if (image) {
         await AsyncStorage.setItem(USER_IMAGE_KEY, image);
       }
+      await AsyncStorage.setItem(USER_COLOR_KEY, color);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar o usuário');
       console.log(error);
@@ -26,7 +33,10 @@ export function userStorage() {
       // CORRIGIDO PARA A CHAVE DE IMAGEM
       const image = await AsyncStorage.getItem(USER_IMAGE_KEY);
 
-      return { name, image };
+      // CORRIGIDO PARA A CHAVE DE IMAGEM
+      const color = await AsyncStorage.getItem(USER_COLOR_KEY);
+
+      return { name, image, color };
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar dados do usuário');
       console.log(error);
@@ -39,6 +49,7 @@ export function userStorage() {
     try {
       await AsyncStorage.removeItem(USER_NAME_KEY);
       await AsyncStorage.removeItem(USER_IMAGE_KEY);
+      await AsyncStorage.removeItem(USER_COLOR_KEY);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível apagar os dados usuário');
       console.error('Erro ao limpar no loader:', error);

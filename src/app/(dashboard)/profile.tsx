@@ -4,25 +4,40 @@ import { PageHeader } from '@/components/PageHeader';
 
 import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Index from '..';
 import { ScrollView } from 'react-native-gesture-handler';
+import { router, useFocusEffect } from 'expo-router';
+import { Loading } from '@/components/Loading';
+
+type profile = {
+  name: string;
+  image: string | null;
+  color: string;
+};
 
 export default function User() {
-  const [userName, setUserName] = useState('');
-  const [userImage, setUserImage] = useState<string | null>(null);
+  const [profile, setProfile] = useState<profile>({
+    name: '',
+    image: null,
+    color: ''
+  });
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState(true);
 
-  const { getUserData } = userStorage();
+  const { getUserData, clearUserData } = userStorage();
 
   async function loadProfile() {
     try {
       const data = await getUserData();
-      if (data.name) setUserName(data.name);
-      if (data.image) setUserImage(data.image);
+
+      setProfile({
+        name: data?.name || 'Usuário desconhecido',
+        image: data?.image || null,
+        color: data?.color || colors.green[500]
+      });
     } catch (error) {
       console.log('Erro ao carregar perfil', error);
     } finally {
@@ -30,12 +45,44 @@ export default function User() {
     }
   }
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  async function handleLogout() {
+    Alert.alert('Sair', 'Deseja realmente sair da sua conta?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sim, sair',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setLoading(true);
+            // 1. Limpa o storage
+            await clearUserData();
+
+            // 2. Tente usar o navigate com um pequeno delay maior
+            // Isso força o roteador a reavaliar a árvore de arquivos
+            setTimeout(() => {
+              // Força a ida para a raiz absoluta
+              if (router.canGoBack()) {
+                router.dismissAll();
+              }
+              router.replace('/');
+            }, 200);
+          } catch (error) {
+            setLoading(false);
+            Alert.alert('Erro', 'Não foi possível sair.');
+          }
+        }
+      }
+    ]);
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   if (loading) {
-    return <ActivityIndicator style={{ flex: 1 }} color={colors.green[500]} />;
+    return <Loading height={300} width={300} />;
   }
 
   return (
@@ -47,14 +94,13 @@ export default function User() {
         style={{
           alignItems: 'center',
           paddingTop: 50,
-
           zIndex: 1
         }}
       >
         <CustomImage
-          image={userImage}
+          image={profile.image}
           size={130}
-          color={colors.green[400]}
+          color={profile.color}
           style={{ zIndex: 1 }}
         />
         <View
@@ -68,7 +114,7 @@ export default function User() {
           }}
         >
           <Text style={{ fontSize: 24, fontFamily: fontFamily.semiBold }}>
-            {userName}
+            {profile.name}
           </Text>
           <Text
             style={{
@@ -108,13 +154,13 @@ export default function User() {
             title="Editar Perfil"
             subtitle="Configure seu perfil"
             icon="person"
-            onPress={() => console.log('perfil')}
+            onPress={() => router.navigate('/edit-profile')}
           />
 
           <OptionCard
             title="Gerenciamento de contas"
             subtitle="Adicionar novo usuário ou editar um usuário."
-            icon="sell"
+            icon="group-add"
             onPress={() => console.log('contas')}
             disabled
           />
@@ -139,7 +185,7 @@ export default function User() {
             title="Sair"
             subtitle="Sair da conta atual."
             icon="door-back"
-            onPress={() => console.log('sair')}
+            onPress={() => handleLogout()}
             destructiveIcon="logout"
           />
         </ScrollView>

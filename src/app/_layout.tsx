@@ -8,6 +8,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { colors } from '@/theme';
 import { useEffect } from 'react';
+import { Loading } from '@/components/Loading';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,7 +26,7 @@ export default function Layout() {
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) return <Loading height={300} width={300} />;
 
   return (
     <Stack
@@ -36,6 +37,13 @@ export default function Layout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="(dashboard)" />
+      <Stack.Screen
+        name="edit-profile"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom'
+        }}
+      />
       <Stack.Screen
         name="new-category"
         options={{

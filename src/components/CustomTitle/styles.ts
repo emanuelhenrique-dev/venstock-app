@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
-    maxWidth: '80%',
+    maxWidth: '90%',
     flexDirection: 'row',
     gap: 8
   },

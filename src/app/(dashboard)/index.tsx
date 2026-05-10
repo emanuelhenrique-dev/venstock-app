@@ -6,7 +6,7 @@ import { SearchInput } from '@/components/SearchInput';
 import { Summary } from '@/components/Summary';
 import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { categories } from '@/database/storage';
 
@@ -62,9 +62,11 @@ export default function Index() {
     }
   }
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   if (loading) {
     return (

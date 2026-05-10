@@ -102,7 +102,7 @@ export default function CategoryForm() {
           />
           <Input
             label="NOME DA CATEGORIA*"
-            placeholder="Digite seu nome ou nome da loja..."
+            placeholder="Ex: Gelados"
             value={categoryName}
             onChangeText={setCategoryName}
           />

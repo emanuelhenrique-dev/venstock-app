@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View, Platform, StatusBar, Alert } from 'react-native';
 
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Button } from '@/components/Button';
 import { CustomTitle } from '@/components/CustomTitle';
@@ -13,10 +13,12 @@ import { Input } from '@/components/Input';
 import { colors, fontFamily } from '@/theme';
 import { userStorage } from '@/database/userStorage';
 import { KeyboardWrapper } from '@/components/KeyboardWrapper';
+import { Loading } from '@/components/Loading';
 
 export default function Index() {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
 
   const { saveUserData, getUserData } = userStorage();
@@ -29,7 +31,7 @@ export default function Index() {
     }
 
     try {
-      await saveUserData(userName, userImage);
+      await saveUserData(userName, userImage, colors.green[500]);
       console.log('Dados salvos!');
       router.push('/(dashboard)');
     } catch (error) {
@@ -42,20 +44,28 @@ export default function Index() {
   async function checkExistingUser() {
     try {
       const data = await getUserData();
-      if (data.name) {
-        console.log('Usuário já esta logado');
-        console.log('Logado como', data.name);
-        console.log('imageUrl', data.image);
+      // Verificação rigorosa: se não tiver nome, não redireciona
+      if (data && data.name) {
         router.replace('/(dashboard)');
+      } else {
+        setUserName('');
+        setUserImage(null);
+        setIsChecking(false); // Libera a tela de boas-vindas
       }
     } catch (error) {
+      setIsChecking(false);
       console.log('Error ao carregar dados', error);
     }
   }
 
-  useEffect(() => {
-    checkExistingUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      checkExistingUser();
+    }, [])
+  );
+
+  // Enquanto checa o banco, não mostra nada (ou um spinner)
+  if (isChecking) return <Loading height={300} width={300} />;
 
   return (
     <SafeAreaProvider>
@@ -73,7 +83,7 @@ export default function Index() {
           // contentContainerStyle do scroll view
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: 40
+            paddingBottom: 60
           }}
         >
           <View
