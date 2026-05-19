@@ -15,7 +15,10 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -36,6 +39,8 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
 
   const { getUserData } = userStorage();
+
+  const insets = useSafeAreaInsets();
 
   //Base de dados fictícia para os períodos
   const salesPeriods = [
@@ -170,8 +175,7 @@ export default function Index() {
         <View
           style={{
             flex: 1,
-            position: 'relative',
-            marginBottom: 110
+            position: 'relative'
           }}
         >
           {/* LISTA DE CATEGORIAS (Fica no fundo) */}
@@ -190,7 +194,9 @@ export default function Index() {
             snapToInterval={200}
             decelerationRate="fast"
             emptyMessage="Nenhuma categoria criada."
-            containerStyle={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingBottom: insets.bottom + 40
+            }}
           />
 
           {/* 2. CHAME O COMPONENTE SOBREPOSTO AQUI */}

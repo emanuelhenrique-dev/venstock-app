@@ -9,9 +9,10 @@ export const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    bottom: 40,
+    bottom: 0,
     paddingHorizontal: 34,
-    paddingBottom: 20
+    paddingBottom: 20,
+    backgroundColor: colors.white
   },
   tabItem: {
     flexDirection: 'row',

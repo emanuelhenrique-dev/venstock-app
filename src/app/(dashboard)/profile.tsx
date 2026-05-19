@@ -6,7 +6,10 @@ import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StatusBar, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 import Index from '..';
 import { ScrollView } from 'react-native-gesture-handler';
 import { router, useFocusEffect } from 'expo-router';
@@ -28,6 +31,8 @@ export default function User() {
   const [notifications, setNotifications] = useState(true);
 
   const { getUserData, clearUserData } = userStorage();
+
+  const insets = useSafeAreaInsets();
 
   async function loadProfile() {
     try {
@@ -86,14 +91,14 @@ export default function User() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header com Foto e Nome */}
       <View
         style={{
           alignItems: 'center',
-          paddingTop: 50,
+          paddingTop: 40,
           zIndex: 1
         }}
       >
@@ -106,14 +111,18 @@ export default function User() {
         <View
           style={{
             width: '100%',
-            marginTop: -20,
-            paddingTop: 30,
-            paddingBottom: 22,
+            marginTop: -60,
+            paddingTop: 60,
+            paddingBottom: 50,
+            paddingHorizontal: 10,
             alignItems: 'center',
             backgroundColor: colors.gray[150]
           }}
         >
-          <Text style={{ fontSize: 24, fontFamily: fontFamily.semiBold }}>
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: 24, fontFamily: fontFamily.semiBold }}
+          >
             {profile.name}
           </Text>
           <Text
@@ -133,12 +142,11 @@ export default function User() {
       {/* LISTA DE OPÇÕES */}
       <View
         style={{
-          marginBottom: 82,
           gap: 24,
           backgroundColor: colors.gray[150],
           flex: 1,
           paddingHorizontal: 24,
-          marginTop: -160
+          marginBottom: 10
         }}
       >
         <ScrollView
@@ -146,8 +154,7 @@ export default function User() {
           contentContainerStyle={{
             flexGrow: 1,
             gap: 8,
-            paddingTop: 160,
-            paddingBottom: 10
+            paddingBottom: insets.bottom + 80
           }}
         >
           <OptionCard

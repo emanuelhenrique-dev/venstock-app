@@ -76,5 +76,84 @@ export const generalHistory: HistoryProps[] = [
       { name: 'Picolé de Morango', quantity: 2 },
       { name: 'Picolé de Fruta', quantity: 1 }
     ]
+  },
+  {
+    id: '1002554',
+    type: 'general',
+    category: 'sale', // Nova propriedade para controle interno
+    description: 'Dinheiro',
+    itemsCount: 36,
+    userName: 'Vendedor 01',
+    status: 'Completed',
+    date: 'Hoje às 10:15',
+    value: 262.9,
+    items: [
+      { name: 'Saco de Gelo (cubo)', quantity: 10, price: 15.0 },
+      { name: 'Picolé de Fruta', quantity: 20, price: 3.5 },
+      { name: 'Picolé Especial', quantity: 6, price: 7.15 }
+    ]
+  },
+  {
+    id: '1002553',
+    type: 'general',
+    category: 'sale', // Nova propriedade para controle interno
+    description: 'Dinheiro',
+    itemsCount: 36,
+    userName: 'Vendedor 01',
+    status: 'Completed',
+    date: 'Hoje às 10:15',
+    value: 262.9,
+    items: [
+      { name: 'Saco de Gelo (cubo)', quantity: 10, price: 15.0 },
+      { name: 'Picolé de Fruta', quantity: 20, price: 3.5 },
+      { name: 'Picolé Especial', quantity: 6, price: 7.15 }
+    ]
+  },
+  {
+    id: '100255212',
+    type: 'general',
+    category: 'sale', // Nova propriedade para controle interno
+    description: 'Dinheiro',
+    itemsCount: 36,
+    userName: 'Vendedor 01',
+    status: 'Completed',
+    date: 'Hoje às 10:15',
+    value: 262.9,
+    items: [
+      { name: 'Saco de Gelo (cubo)', quantity: 10, price: 15.0 },
+      { name: 'Picolé de Fruta', quantity: 20, price: 3.5 },
+      { name: 'Picolé Especial', quantity: 6, price: 7.15 }
+    ]
+  },
+  {
+    id: '100256123',
+    type: 'general',
+    category: 'withdrawal',
+    description: 'Avaria',
+    itemsCount: 3,
+    userName: 'Vendedor 02',
+    status: 'Completed',
+    date: 'Hoje às 08:35',
+    details: 'Embalagem rasgada', // Detalhes específicos da retirada
+    items: [
+      { name: 'Picolé de Morango', quantity: 2 },
+      { name: 'Picolé de Fruta', quantity: 1 }
+    ]
+  },
+
+  {
+    id: '10025612',
+    type: 'general',
+    category: 'withdrawal',
+    description: 'Avaria',
+    itemsCount: 3,
+    userName: 'Vendedor 02',
+    status: 'Completed',
+    date: 'Hoje às 08:35',
+    details: 'Embalagem rasgada', // Detalhes específicos da retirada
+    items: [
+      { name: 'Picolé de Morango', quantity: 2 },
+      { name: 'Picolé de Fruta', quantity: 1 }
+    ]
   }
 ];

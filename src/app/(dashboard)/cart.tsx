@@ -1,5 +1,4 @@
 import { CartSummary } from '@/components/CartSummary';
-import { CategoryCard } from '@/components/CategoryCard';
 import { EmptyComponent } from '@/components/EmptyComponent';
 import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { List } from '@/components/List';
@@ -12,8 +11,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

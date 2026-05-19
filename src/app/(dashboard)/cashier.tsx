@@ -1,7 +1,10 @@
 import { PageHeader } from '@/components/PageHeader';
 import { colors, fontFamily } from '@/theme';
 import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 
 import QRCode from 'react-native-qrcode-svg';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,6 +20,8 @@ export default function Cashier() {
   const [activeTab, setActiveTab] = useState<'pix' | 'history'>('pix');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filters, setFilters] = useState<transactionCategoryType[]>(['sale']);
+
+  const insets = useSafeAreaInsets();
 
   // 2. Função para alternar os filtros do histórico geral
   const toggleFilter = (filter: transactionCategoryType) => {
@@ -42,7 +47,7 @@ export default function Cashier() {
         flex: 1,
         paddingHorizontal: 24
       }}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
       <StatusBar barStyle="dark-content" />
       <PageHeader
@@ -105,7 +110,7 @@ export default function Cashier() {
         </TouchableOpacity>
       </View>
 
-      <View style={{ flex: 1, marginTop: 20 }}>
+      <View style={{ flex: 1, marginTop: 8 }}>
         {activeTab === 'pix' ? (
           <View style={{ flex: 1, gap: 20 }}>
             <View style={{ alignItems: 'center', gap: 4 }}>
@@ -179,7 +184,7 @@ export default function Cashier() {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flex: 1, marginTop: 12 }}>
+            <View style={{ flex: 1 }}>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
               >
@@ -191,7 +196,7 @@ export default function Cashier() {
                     includeFontPadding: false
                   }}
                 >
-                  Últimas
+                  Últimas{' '}
                   <Text
                     style={{
                       color: colors.green[500]
@@ -212,7 +217,7 @@ export default function Cashier() {
                   />
                 </TouchableOpacity>
               </View>
-              <View style={{ flex: 1, marginBottom: 90 }}>
+              <View style={{ flex: 1 }}>
                 <List
                   data={pixTransactions}
                   keyExtractor={(item) => item.id}
@@ -263,7 +268,7 @@ export default function Cashier() {
               />
             </View>
             <List
-              data={filteredHistory} // Aquela lista com vendas e retiradas filtrado
+              data={filteredHistory} // lista com vendas e retiradas filtrado
               renderItem={({ item }) => (
                 <HistoryCard
                   data={{ ...item, type: 'general' }}
@@ -275,7 +280,9 @@ export default function Cashier() {
                 />
               )}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ paddingBottom: 100 }}
+              contentContainerStyle={{
+                paddingBottom: insets.bottom + 120
+              }}
             />
           </View>
         )}
