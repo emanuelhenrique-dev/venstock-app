@@ -1,4 +1,4 @@
-import { CategoryCard } from '@/components/CategoryCard';
+import { CategoryCard, CategoryCardProps } from '@/components/CategoryCard';
 import { List } from '@/components/List';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductsListOverlay } from '@/components/ProductsListOverlay';
@@ -23,7 +23,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 
-import { categories } from '@/database/storage';
+import {
+  CategoryResponse,
+  useCategoryDatabase
+} from '@/database/useCategoryDatabase';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -36,9 +39,12 @@ export default function Index() {
   const [periodIndex, setPeriodIndex] = useState(0); // 0: 24h, 1: Semana, 2: Mês, 3: Ano
   const [selectedCategory, setSelectedCategory] =
     useState<selectedCategoryProps | null>(null);
+
+  const [categories, setCategories] = useState<CategoryCardProps[]>([]);
   const [loading, setLoading] = useState(true);
 
   const { getUserData } = userStorage();
+  const CategoryDatabase = useCategoryDatabase();
 
   const insets = useSafeAreaInsets();
 
@@ -55,21 +61,57 @@ export default function Index() {
     setPeriodIndex((prev) => (prev + 1) % salesPeriods.length);
   }
 
-  async function loadProfile() {
+  async function loadProfile(): Promise<string | null> {
     try {
       const data = await getUserData();
-      if (data.name) setUserName(data.name);
+      return data.name;
     } catch (error) {
       Alert.alert('Error', 'Erro ao carregar Usuário');
       console.log('Erro ao carregar perfil no Dashboard', error);
-    } finally {
-      setLoading(false);
+      return null;
     }
+  }
+
+  async function fetchCategories(): Promise<CategoryCardProps[]> {
+    try {
+      const response = await CategoryDatabase.getAll();
+
+      return response.map((item) => ({
+        id: String(item.id),
+        name: item.name,
+        qtdEstoque: item.qtdEstoque,
+        qtdVendidos: item.qtdVendidos,
+        imageUrl: item.imageUrl ?? undefined,
+        color: item.color
+      }));
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar as categorias');
+      console.log(error);
+      return [];
+    }
+  }
+
+  async function fetchData() {
+    const categoryDataPromise = fetchCategories();
+    const profileDataPromise = loadProfile();
+
+    const [categoryData, profileData] = await Promise.all([
+      categoryDataPromise,
+      profileDataPromise
+    ]);
+
+    console.log(categoryData);
+
+    setUserName(profileData || 'Usuário desconhecido');
+    setCategories(categoryData);
+
+    setLoading(false);
   }
 
   useFocusEffect(
     useCallback(() => {
-      loadProfile();
+      fetchData();
+      setSelectedCategory(null);
     }, [])
   );
 

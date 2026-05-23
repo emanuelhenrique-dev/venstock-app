@@ -9,6 +9,8 @@ import {
 import { colors } from '@/theme';
 import { useEffect } from 'react';
 import { Loading } from '@/components/Loading';
+import { SQLiteProvider } from 'expo-sqlite';
+import { migrate } from '@/database/migrate';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,35 +31,37 @@ export default function Layout() {
   if (!fontsLoaded && !fontError) return <Loading height={300} width={300} />;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.white }
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(dashboard)" />
-      <Stack.Screen
-        name="edit-profile"
-        options={{
-          presentation: 'modal',
-          animation: 'slide_from_bottom'
+    <SQLiteProvider databaseName="venstock.db" onInit={migrate}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.white }
         }}
-      />
-      <Stack.Screen
-        name="new-category"
-        options={{
-          presentation: 'modal', // Isso faz ela subir de baixo no iOS/Android moderno
-          animation: 'slide_from_bottom'
-        }}
-      />
-      <Stack.Screen
-        name="new-product"
-        options={{
-          presentation: 'modal',
-          animation: 'slide_from_bottom'
-        }}
-      />
-    </Stack>
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(dashboard)" />
+        <Stack.Screen
+          name="edit-profile"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom'
+          }}
+        />
+        <Stack.Screen
+          name="new-category"
+          options={{
+            presentation: 'modal', // Isso faz ela subir de baixo no iOS/Android moderno
+            animation: 'slide_from_bottom'
+          }}
+        />
+        <Stack.Screen
+          name="new-product"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom'
+          }}
+        />
+      </Stack>
+    </SQLiteProvider>
   );
 }

@@ -10,11 +10,11 @@ import { CustomImage } from '../CustomImage';
 import { colors } from '@/theme';
 
 export type CategoryCardProps = {
-  id?: string;
+  id: string;
   name: string;
   qtdEstoque: number;
   qtdVendidos: number;
-  imageUrl?: string;
+  imageUrl?: string | null;
   color?: string;
 };
 
@@ -26,9 +26,9 @@ export function CategoryCard({ data, ...rest }: Props) {
   return (
     <TouchableOpacity style={styles.container} {...rest}>
       <CustomImage
-        image={null}
+        image={data.imageUrl ?? null}
         size={60}
-        color={colors.blue[400]}
+        color={data.color ?? colors.blue[400]}
         variant="category"
       />
       <View style={styles.content}>

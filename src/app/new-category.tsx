@@ -3,14 +3,16 @@ import { ColorInput } from '@/components/ColorInput';
 import { ImageInput } from '@/components/ImageInput';
 import { Input } from '@/components/Input';
 import { PageHeader } from '@/components/PageHeader';
+import { useCategoryDatabase } from '@/database/useCategoryDatabase';
 import { colors } from '@/theme';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CategoryForm() {
   const param = useLocalSearchParams<{ id?: string }>();
+  const categoryDatabase = useCategoryDatabase();
 
   const [categoryName, setCategoryName] = useState('');
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
@@ -29,33 +31,61 @@ export default function CategoryForm() {
 
     try {
       if (param.id) {
-        // Lógica de Update virá aqui
-        console.log('Atualizando categoria:', {
-          id: param.id,
-          name: categoryName,
-          color: selectedColor,
-          image: categoryImage
-        });
+        await update();
+        Alert.alert('Atualizar Categoria', 'Categoria atualizada com sucesso', [
+          { text: 'Ok', onPress: () => router.back() }
+        ]);
       } else {
-        // Lógica de Create virá aqui
-        console.log('Salvando nova categoria:', {
-          name: categoryName,
-          color: selectedColor,
-          image: categoryImage
-        });
+        await create();
+        Alert.alert('Nova Categoria', 'Nova Categoria criada com sucesso', [
+          { text: 'Ok', onPress: () => router.back() }
+        ]);
       }
-
-      // Simulação de delay de salvamento
-      setTimeout(() => {
-        setIsProcessing(false);
-        router.back();
-      }, 1000);
     } catch (error) {
-      console.log(error);
-      setIsProcessing(false);
+      console.log('Erro ao salvar categoria:', error);
       Alert.alert('Erro', 'Não foi possível salvar a categoria.');
+    } finally {
+      setIsProcessing(false);
     }
   }
+
+  async function create() {
+    await categoryDatabase.create({
+      name: categoryName.trim(),
+      color: selectedColor,
+      imageUrl: categoryImage ?? undefined
+    });
+  }
+
+  async function update() {
+    await categoryDatabase.updateCategory({
+      id: Number(param.id),
+      name: categoryName.trim(),
+      color: selectedColor,
+      imageUrl: categoryImage ?? undefined
+    });
+  }
+
+  async function loadCategoryData(id: number) {
+    try {
+      const currentCategory = await categoryDatabase.show(id);
+
+      if (currentCategory) {
+        setCategoryName(currentCategory.name);
+        setCategoryImage(currentCategory.imageUrl ?? null);
+        setSelectedColor(currentCategory.color);
+      }
+    } catch (error) {
+      console.log('Erro ao carregar dados da categoria para edição:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados da categoria.');
+    }
+  }
+
+  useEffect(() => {
+    if (param.id) {
+      loadCategoryData(Number(param.id));
+    }
+  }, [param.id]);
 
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>
