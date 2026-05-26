@@ -66,6 +66,37 @@ export default function CategoryForm() {
     });
   }
 
+  async function handleRemove() {
+    if (!param.id) {
+      return;
+    }
+
+    Alert.alert('Remover', 'Deseja realmente remover esta Categoria?', [
+      { text: 'não', style: 'cancel' },
+      {
+        text: 'sim',
+        style: 'destructive',
+        onPress: remove
+      }
+    ]);
+  }
+
+  async function remove() {
+    try {
+      setIsProcessing(true);
+
+      await categoryDatabase.removeCategory(Number(param.id));
+
+      Alert.alert('Remover Categoria', 'Categoria removida!', [
+        { text: 'Ok', onPress: () => router.replace('/') }
+      ]);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível remover a Categoria.');
+      console.log(error);
+      setIsProcessing(false);
+    }
+  }
+
   async function loadCategoryData(id: number) {
     try {
       const currentCategory = await categoryDatabase.show(id);
@@ -113,9 +144,7 @@ export default function CategoryForm() {
               param.id
                 ? {
                     icon: 'delete',
-                    onPress: () => {
-                      console.log('lixeira apertada para o id:', param.id);
-                    }
+                    onPress: () => handleRemove()
                   }
                 : undefined
             }

@@ -11,6 +11,7 @@ interface Props extends ViewProps {
   subtitle: string;
   gradient: string[];
   back?: boolean;
+  loading?: boolean;
   button?: {
     onPress: () => void;
     icon: keyof typeof MaterialIcons.glyphMap;
@@ -23,6 +24,7 @@ export function PageHeader({
   subtitle,
   gradient,
   back = false,
+  loading = false,
   button,
   ...rest
 }: Props) {
@@ -31,9 +33,10 @@ export function PageHeader({
       {back && (
         <View style={styles.header}>
           <TouchableOpacity
-            style={styles.buttonHeader}
+            style={[styles.buttonHeader, { opacity: !loading ? 1 : 0.4 }]}
             activeOpacity={0.8}
             onPress={() => router.back()}
+            disabled={loading}
           >
             <MaterialIcons name="arrow-back" size={28} color={colors.black} />
           </TouchableOpacity>

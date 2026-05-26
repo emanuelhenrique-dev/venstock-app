@@ -18,6 +18,8 @@ export async function migrate(database: SQLiteDatabase) {
       name TEXT NOT NULL,
       price REAL NOT NULL,
       quantity INTEGER NOT NULL,
+      min_stock INTEGER NOT NULL DEFAULT 0,
+      barcode TEXT,
       color TEXT NOT NULL,            
       image_url TEXT,
       category_id INTEGER NOT NULL,

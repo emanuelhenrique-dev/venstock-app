@@ -13,12 +13,14 @@ export const styles = StyleSheet.create({
     color: colors.black,
     fontFamily: fontFamily.bold,
     fontSize: 16,
-    includeFontPadding: false
+    includeFontPadding: false,
+    textAlign: 'center'
   },
   textSecondary: {
     color: colors.gray[600],
     fontFamily: fontFamily.regular,
     fontSize: 14,
-    includeFontPadding: false
+    includeFontPadding: false,
+    textAlign: 'center'
   }
 });

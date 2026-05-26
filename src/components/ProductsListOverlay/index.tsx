@@ -19,11 +19,12 @@ import { ProductCard } from '../ProductCard';
 import { selectedCategoryProps } from '@/app/(dashboard)';
 import { CustomImage } from '../CustomImage';
 import { router } from 'expo-router';
-import { products } from '@/database/storage';
 import { useCartStore } from '@/store/useCartStore';
 import { Loading } from '../Loading';
 import { ProductSkeleton } from '../ProductSkeleton';
 import { Separator } from '../Separator';
+import { useProductDatabase } from '@/database/useProductDatabase';
+import { EmptyComponent } from '../EmptyComponent';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -47,7 +48,11 @@ interface Props {
 
 export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
   const { items, addItem, updateQuantity, removeItem } = useCartStore();
+  const [products, setProducts] = useState<ProductCardProps[]>([]);
   const [canRenderList, setCanRenderList] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const ProductDatabase = useProductDatabase();
 
   async function EditProduct(id: string) {
     try {
@@ -63,8 +68,12 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
           text: 'sim',
           style: 'destructive',
           onPress: () => {
+            if (!selectedCategory) return;
             console.warn('editar produto', id);
-            router.navigate(`/new-product/?id=${id}`);
+
+            router.navigate(
+              `/new-product/?id=${id}&categoryId=${selectedCategory.id}&categoryName=${encodeURIComponent(selectedCategory.name)}`
+            );
           }
         }
       ]);
@@ -74,13 +83,56 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
     }
   }
 
+  async function fetchProductsByCategory(): Promise<ProductCardProps[]> {
+    if (!selectedCategory?.id) {
+      return [];
+    }
+
+    try {
+      const response = await ProductDatabase.getByCategory(
+        Number(selectedCategory.id)
+      );
+
+      return response.map((item) => ({
+        id: String(item.id),
+        name: item.name,
+        price: item.price,
+        qtdEstoque: item.qtdEstoque,
+        qtdVendidos: item.qtdVendidos,
+        imageUrl: item.imageUrl ?? undefined,
+        color: item.color
+      }));
+    } catch (error) {
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar os Produtos da Categoria ' +
+          selectedCategory?.name
+      );
+      console.log(error);
+      return [];
+    }
+  }
+
+  async function fetchData() {
+    const data = await fetchProductsByCategory();
+    setProducts(data);
+
+    setIsLoading(false);
+  }
+
   // Só mostra a lista após a animação de entrada acabar (250ms)
   useEffect(() => {
     if (selectedCategory) {
+      // Dispara a busca no banco de dados imediatamente em paralelo
+      fetchData();
+
+      // Ativa o renderizador após 200ms para casar com a transição do Moti
       const timer = setTimeout(() => setCanRenderList(true), 200);
       return () => clearTimeout(timer);
     } else {
+      // Reseta os estados quando o overlay é fechado (selectedCategory vira null)
       setCanRenderList(false);
+      setProducts([]);
     }
   }, [selectedCategory]);
 
@@ -106,9 +158,9 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
 
             <View style={styles.categoryInfo}>
               <CustomImage
-                image={null}
+                image={selectedCategory.image}
                 size={30}
-                color={colors.blue[400]}
+                color={selectedCategory.color ?? colors.blue[400]}
                 variant="category"
               />
               <Text style={styles.categoryTitle} numberOfLines={1}>
@@ -169,6 +221,14 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
               }}
               containerStyle={{ flex: 1 }}
               snapToInterval={80}
+              ListEmptyComponent={
+                <EmptyComponent
+                  text="Nenhum produto cadastrado"
+                  subtext={`Esta Categoria ainda não possui produtos.`}
+                  icon="dropbox"
+                  color={colors.green[500]}
+                />
+              }
             />
           ) : (
             // Renderiza 5 ou 6 esqueletos fixos enquanto a animação termina

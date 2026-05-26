@@ -1,5 +1,5 @@
 import { Button } from '@/components/Button';
-import { CategorySelect } from '@/components/CategorySelect';
+import { CategorySelect, SelectedCategory } from '@/components/CategorySelect';
 import { ColorInput } from '@/components/ColorInput';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { ImageInput } from '@/components/ImageInput';
@@ -8,22 +8,33 @@ import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { PageHeader } from '@/components/PageHeader';
 import { colors } from '@/theme';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { categories } from '@/database/storage';
 import { ScannerButton } from '@/components/ScannerButton';
+import {
+  ProductResponse,
+  useProductDatabase
+} from '@/database/useProductDatabase';
+import { useCategoryDatabase } from '@/database/useCategoryDatabase';
 
 export default function ProductForm() {
-  const param = useLocalSearchParams<{ id?: string }>();
+  const param = useLocalSearchParams<{
+    id?: string;
+    categoryId: string;
+    categoryName: string;
+  }>();
 
   const [productName, setProductName] = useState('');
   const [productImage, setProductImage] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<{
-    id: string;
-    name: string;
-  } | null>({ id: '1', name: 'Gelados' });
+  const [selectedCategory, setSelectedCategory] = useState<SelectedCategory>({
+    id: '',
+    name: ''
+  });
+  const [categoriesOptions, setCategoriesOptions] = useState<
+    SelectedCategory[]
+  >([]);
   const [selectedColor, setSelectedColor] = useState(colors.green[500]);
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState('');
@@ -32,74 +43,166 @@ export default function ProductForm() {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  async function handleSave() {
-    // 1. Sanitização e Conversão
-    // Convertemos as strings para números apenas aqui no momento do salvamento
-    const stockNumber = stock.trim() === '' ? 0 : Number(stock);
-    const minStockNumber = minStock.trim() === '' ? 0 : Number(minStock);
+  const productDatabase = useProductDatabase();
+  const categoryDatabase = useCategoryDatabase();
 
-    // 2. Validações de Segurança
+  async function handleSave() {
+    // 1. Validações obrigatórias
     if (!productName.trim()) {
-      return Alert.alert('Atenção', 'O nome do produto é obrigatório.');
+      return Alert.alert(
+        'Atenção',
+        'Por favor, digite um nome para o produto.'
+      );
     }
 
     if (price <= 0) {
       return Alert.alert(
         'Atenção',
-        'O preço de venda deve ser maior que zero.'
+        'Por favor, defina um preço válido para o produto.'
       );
     }
 
-    // Validamos se o estoque é um número válido (caso o usuário tenha digitado algo estranho)
-    if (isNaN(stockNumber)) {
-      return Alert.alert('Atenção', 'O valor do estoque atual não é válido.');
-    }
-
-    if (stockNumber <= 0) {
+    if (!selectedCategory?.id) {
       return Alert.alert(
         'Atenção',
-        'O estoque inicial tem que ser maior que zero.'
+        'Por favor, selecione uma categoria para este produto.'
       );
     }
 
-    // 3. Início do Processo de Salvamento
     setIsProcessing(true);
 
     try {
-      // Montagem do objeto final que vai para o Banco de Dados (SQLite/API)
-      const productData = {
-        name: productName.trim(),
-        image: productImage,
-        color: selectedColor,
-        price: price, // Já é number vindo do CurrencyInput
-        stock: stockNumber,
-        minStock: minStockNumber,
-        codBar: codBar.trim()
-      };
-
       if (param.id) {
-        // Aqui entrará sua função de update: await updateProduct(param.id, productData);
-        console.log('📝 Atualizando produto ID:', param.id, productData);
+        await update();
+        Alert.alert('Atualizar Produto', 'Produto atualizado com sucesso!', [
+          { text: 'Ok', onPress: () => router.back() }
+        ]);
       } else {
-        // Aqui entrará sua função de create: await createProduct(productData);
-        console.log('✅ Salvando novo produto:', productData);
+        await create();
+        Alert.alert('Novo Produto', 'Produto cadastrado com sucesso!', [
+          { text: 'Ok', onPress: () => router.back() }
+        ]);
       }
-
-      // Simulação de latência de rede/banco
-      setTimeout(() => {
-        setIsProcessing(false);
-
-        // Feedback visual opcional
-        // Alert.alert('Sucesso', 'Produto registrado com sucesso!');
-
-        router.back();
-      }, 1000);
     } catch (error) {
-      console.error('Erro ao salvar produto:', error);
+      console.log('Erro ao salvar produto:', error);
+      Alert.alert('Erro', 'Não foi possível salvar o produto.');
+    } finally {
+      // Garante que o botão destrave independente de dar certo ou erro
       setIsProcessing(false);
-      Alert.alert('Erro', 'Não foi possível salvar as informações do produto.');
     }
   }
+
+  async function create() {
+    // Tratamento dos campos de estoque (igual ao seu rascunho seguro)
+    const stockNumber = stock.trim() === '' ? 0 : Number(stock);
+    const minStockNumber = minStock.trim() === '' ? 0 : Number(minStock);
+
+    await productDatabase.create({
+      name: productName.trim(),
+      price: price, // Já vem como number do seu CurrencyInput
+      qtdEstoque: stockNumber,
+      minEstoque: minStockNumber,
+      codBar: codBar.trim() || undefined, // Se estiver vazio, envia undefined (salva nulo no banco)
+      color: selectedColor,
+      imageUrl: productImage ?? undefined,
+      category_id: Number(selectedCategory?.id)
+    });
+  }
+
+  async function update() {
+    const stockNumber = stock.trim() === '' ? 0 : Number(stock);
+    const minStockNumber = minStock.trim() === '' ? 0 : Number(minStock);
+
+    await productDatabase.updateProduct({
+      id: Number(param.id),
+      name: productName.trim(),
+      price: price,
+      qtdEstoque: stockNumber,
+      minEstoque: minStockNumber,
+      codBar: codBar.trim() || undefined,
+      color: selectedColor,
+      imageUrl: productImage ?? undefined,
+      category_id: Number(selectedCategory?.id)
+    });
+  }
+
+  // Função para buscar as categorias do seletor
+  async function fetchCategoriesOptions(): Promise<SelectedCategory[]> {
+    try {
+      const response = await categoryDatabase.getAll();
+      console.log('1. Resposta Bruta do Banco:', response);
+      return response.map((category) => ({
+        id: String(category.id),
+        name: category.name
+      }));
+    } catch (error) {
+      console.log('Erro ao buscar categorias para o seletor:', error);
+      return [];
+    }
+  }
+
+  // Função para buscar os dados do produto caso seja edição
+  async function fetchProductDetails(
+    productId: number
+  ): Promise<ProductResponse | null> {
+    try {
+      return await productDatabase.show(productId);
+    } catch (error) {
+      console.log(`Erro ao buscar o produto com ID ${productId}:`, error);
+      return null;
+    }
+  }
+
+  async function fetchData() {
+    try {
+      setIsProcessing(true);
+
+      // Criamos as promessas em paralelo
+      const categoriesPromise = fetchCategoriesOptions();
+      const productPromise = param.id
+        ? fetchProductDetails(Number(param.id))
+        : Promise.resolve(null);
+
+      // Aguardamos ambas responderem juntas com o Promise.all
+      const [categoriesData, productData] = await Promise.all([
+        categoriesPromise,
+        productPromise
+      ]);
+
+      // Alimenta o seletor de categorias
+      setCategoriesOptions(categoriesData);
+
+      // Se retornou um produto (Cenário de Edição), popula os inputs do formulário
+      if (productData) {
+        setProductName(productData.name);
+        setPrice(productData.price);
+        setStock(String(productData.qtdEstoque));
+        setMinStock(String(productData.minEstoque));
+        setCodBar(productData.codBar ?? '');
+        setSelectedColor(productData.color);
+        setProductImage(productData.imageUrl ?? null);
+
+        // Seta a categoria do produto editado
+        setSelectedCategory({
+          id: String(productData.category_id),
+          name: productData.category_name
+        });
+      } else if (param.categoryId && param.categoryName) {
+        setSelectedCategory({
+          id: param.categoryId,
+          name: param.categoryName
+        });
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar os dados da tela.');
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, [param.id, param.categoryId, param.categoryName]);
 
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>
@@ -108,7 +211,7 @@ export default function ProductForm() {
           flex: 1,
           backgroundColor: colors.white,
           paddingHorizontal: 22,
-          paddingTop: 22
+          paddingTop: 18
         }}
         edges={['bottom']}
       >
@@ -124,6 +227,7 @@ export default function ProductForm() {
               }
               gradient={[colors.green[400], colors.green[500]]}
               back
+              loading={isProcessing}
               button={
                 param.id
                   ? {
@@ -153,9 +257,9 @@ export default function ProductForm() {
             />
             <CategorySelect
               label="CATEGORIA*"
-              options={categories}
+              options={categoriesOptions}
               selectedCategory={selectedCategory}
-              onSelect={setSelectedCategory} // Passa a função diretamente
+              onSelect={setSelectedCategory}
             />
             <View style={{ flexDirection: 'row', gap: 30 }}>
               <CurrencyInput
@@ -205,7 +309,7 @@ export default function ProductForm() {
               setSelectedColor={setSelectedColor}
             />
           </View>
-          <View style={{ marginTop: 40, width: '100%' }}>
+          <View style={{ marginTop: 18, width: '100%' }}>
             <Button
               text={param.id ? 'Salvar Mudanças' : 'Adicionar Produto'}
               color1={colors.green[400]}

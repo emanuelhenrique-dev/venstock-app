@@ -15,16 +15,16 @@ import { Button } from '../Button';
 import { styles } from './styles';
 // Importe o seu botão
 
-interface Category {
+export interface SelectedCategory {
   id: string;
   name: string;
 }
 
 interface CategorySelectProps {
   label: string;
-  options: Category[];
-  selectedCategory: Category | null;
-  onSelect: (category: Category) => void;
+  options: SelectedCategory[];
+  selectedCategory: SelectedCategory | null;
+  onSelect: (category: SelectedCategory) => void;
 }
 
 export function CategorySelect({
@@ -35,10 +35,12 @@ export function CategorySelect({
 }: CategorySelectProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  function handleSelect(category: Category) {
+  function handleSelect(category: SelectedCategory) {
     onSelect(category);
     setIsVisible(false);
   }
+
+  console.log(options);
 
   return (
     <View style={{ gap: 8 }}>

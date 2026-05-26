@@ -27,11 +27,14 @@ import {
   CategoryResponse,
   useCategoryDatabase
 } from '@/database/useCategoryDatabase';
+import { EmptyComponent } from '@/components/EmptyComponent';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
   id: string;
   name: string;
+  image: string | null;
+  color: string | null;
 };
 
 export default function Index() {
@@ -195,7 +198,9 @@ export default function Index() {
             onPress={() => {
               !selectedCategory
                 ? router.navigate('/new-category')
-                : router.navigate('/new-product');
+                : router.navigate(
+                    `/new-product/?categoryId=${selectedCategory.id}&categoryName=${encodeURIComponent(selectedCategory.name)}`
+                  );
             }}
           >
             <LinearGradient
@@ -229,13 +234,26 @@ export default function Index() {
                 data={item}
                 // Ao clicar, ativamos o estado para exibir os produtos
                 onPress={() =>
-                  setSelectedCategory({ id: item.id, name: item.name })
+                  setSelectedCategory({
+                    id: item.id,
+                    name: item.name,
+                    image: item.imageUrl ?? null,
+                    color: item.color ?? null
+                  })
                 }
               />
             )}
             snapToInterval={200}
             decelerationRate="fast"
             emptyMessage="Nenhuma categoria criada."
+            ListEmptyComponent={
+              <EmptyComponent
+                text="Nenhuma categoria por aqui"
+                subtext="Crie categorias para organizar o seu estoque de produtos."
+                icon="view-list"
+                color={colors.blue[500]}
+              />
+            }
             contentContainerStyle={{
               paddingBottom: insets.bottom + 40
             }}

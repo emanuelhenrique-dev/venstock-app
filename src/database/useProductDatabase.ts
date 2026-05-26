@@ -5,6 +5,8 @@ export type ProductCreate = {
   name: string;
   price: number;
   qtdEstoque: number;
+  minEstoque: number;
+  codBar?: string;
   color: string; // Obrigatório para o produto agora
   imageUrl?: string; // Opcional
   category_id: number;
@@ -19,7 +21,9 @@ export type ProductResponse = {
   name: string;
   price: number;
   qtdEstoque: number;
+  minEstoque: number;
   qtdVendidos: number;
+  codBar?: string;
   color: string;
   imageUrl?: string | null; // Pode vir nulo do banco se não tiver foto
   category_id: number;
@@ -34,9 +38,9 @@ export function useProductDatabase() {
   async function create(data: ProductCreate) {
     const statement = await database.prepareAsync(`
       INSERT INTO products 
-        (name, price, quantity, color, image_url, category_id)
+        (name, price, quantity, min_stock, barcode, color, image_url, category_id)
       VALUES
-        ($name, $price, $quantity, $color, $image_url, $category_id)
+        ($name, $price, $quantity, $min_stock, $barcode, $color, $image_url, $category_id)
     `);
 
     try {
@@ -44,8 +48,10 @@ export function useProductDatabase() {
         $name: data.name,
         $price: data.price,
         $quantity: data.qtdEstoque,
+        $min_stock: data.minEstoque,
+        $barcode: data.codBar || null,
         $color: data.color,
-        $image_url: data.imageUrl ?? null,
+        $image_url: data.imageUrl || null,
         $category_id: data.category_id
       });
 
@@ -62,21 +68,23 @@ export function useProductDatabase() {
   async function getAll() {
     try {
       const query = `
-      SELECT 
-        p.id,
-        p.name,
-        p.price,
-        p.quantity AS qtdEstoque,
-        0 AS qtdVendidos,
-        p.color,
-        p.image_url AS imageUrl,
-        p.category_id,
-        c.name AS category_name, -- <-- Pega o nome da categoria!
-        p.created_at
-      FROM products p
-      INNER JOIN categories c ON c.id = p.category_id
-      ORDER BY c.name ASC, p.name ASC
-    `;
+        SELECT 
+          p.id,
+          p.name,
+          p.price,
+          p.quantity AS qtdEstoque,
+          p.min_stock AS minEstoque,
+          0 AS qtdVendidos,
+          p.barcode AS codBar,       
+          p.color,
+          p.image_url AS imageUrl,
+          p.category_id,
+          c.name AS category_name,
+          p.created_at
+        FROM products p
+        INNER JOIN categories c ON c.id = p.category_id
+        ORDER BY c.name ASC, p.name ASC
+      `;
       const response = await database.getAllAsync<ProductResponse>(query);
       return response;
     } catch (error) {
@@ -89,26 +97,64 @@ export function useProductDatabase() {
   async function getByCategory(categoryID: number) {
     try {
       const query = `
-      SELECT
-        id, 
-        name,
-        price,
-        quantity AS qtdEstoque,
-        0 AS qtdVendidos,
-        color,
-        image_url AS imageUrl,
-        category_id,
-        created_at
-      FROM products
-      WHERE category_id = ?
-      ORDER BY created_at ASC
+        SELECT
+          p.id, 
+          p.name,
+          p.price,
+          p.quantity AS qtdEstoque,
+          p.min_stock AS minEstoque,
+          0 AS qtdVendidos,
+          p.barcode AS codBar,       
+          p.color,
+          p.image_url AS imageUrl,
+          p.category_id,
+          c.name AS category_name,   
+          p.created_at
+        FROM products p
+        INNER JOIN categories c ON c.id = p.category_id -- <-- Adicionado para dar suporte ao category_name
+        WHERE p.category_id = ?
+        ORDER BY p.created_at ASC
       `;
 
       const response = await database.getAllAsync<ProductResponse>(query, [
         categoryID
       ]);
+
+      return response;
     } catch (error) {
-      console.log('Erro ao buscar lista de produtos:', error);
+      console.log('Erro ao buscar lista de produtos por categoria:', error);
+      throw error;
+    }
+  }
+
+  // Listar um Produto Específico pelo ID
+  async function show(id: number) {
+    try {
+      const query = `
+        SELECT 
+          p.id,
+          p.name,
+          p.price,
+          p.quantity AS qtdEstoque,
+          p.min_stock AS minEstoque,
+          0 AS qtdVendidos,          -- Fixado em 0 por enquanto
+          p.barcode AS codBar,
+          p.color,
+          p.image_url AS imageUrl,
+          p.category_id,
+          c.name AS category_name,   -- Traz o nome da categoria associada
+          p.created_at
+        FROM products p
+        INNER JOIN categories c ON c.id = p.category_id
+        WHERE p.id = ?
+      `;
+
+      const response = await database.getFirstAsync<ProductResponse>(query, [
+        id
+      ]);
+      return response; // Retorna o objeto do produto encontrado ou null se não existir
+    } catch (error) {
+      console.log(`Erro ao buscar o produto com ID ${id}:`, error);
       throw error;
     }
   }
@@ -119,11 +165,13 @@ export function useProductDatabase() {
       const result = await database.runAsync(
         `
         UPDATE products SET
-          name = ?,
-          price = ?,
-          quantity = ?,
-          color = ?,
-          image_url = ?,
+          name = ?, 
+          price = ?, 
+          quantity = ?, 
+          min_stock = ?, 
+          barcode = ?, 
+          color = ?, 
+          image_url = ?, 
           category_id = ?
         WHERE id = ?
       `,
@@ -131,8 +179,10 @@ export function useProductDatabase() {
           data.name,
           data.price,
           data.qtdEstoque,
+          data.minEstoque,
+          data.codBar || null,
           data.color,
-          data.imageUrl ?? null,
+          data.imageUrl || null,
           data.category_id,
           data.id
         ]
@@ -155,11 +205,12 @@ export function useProductDatabase() {
       `,
         [id]
       );
+      return result.changes;
     } catch (error) {
       console.log('Erro ao deletar produto:', error);
       throw error;
     }
   }
 
-  return { getAll, getByCategory, create, updateProduct, removeProduct };
+  return { getAll, getByCategory, show, create, updateProduct, removeProduct };
 }
