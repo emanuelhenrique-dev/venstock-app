@@ -6,7 +6,7 @@ import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductCardProps } from '@/components/ProductsListOverlay';
-import { products as allProducts } from '@/database/storage';
+import { useProductDatabase } from '@/database/useProductDatabase';
 import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
@@ -32,9 +32,10 @@ export default function Cart() {
   const [description, setDescription] = useState('');
 
   const [isFetching, setIsFetching] = useState(true);
-  const { items, updateQuantity, removeItem, getTotal } = useCartStore();
+  const { items, updateQuantity, removeItem } = useCartStore();
 
-  const total = getTotal(allProducts);
+  const productDatabase = useProductDatabase();
+  const [dbProducts, setDbProducts] = useState<ProductCardProps[]>([]); // Novo estado
 
   // Lógica para decidir qual método e qual função de alteração enviar
   const currentMethod =
@@ -46,7 +47,9 @@ export default function Cart() {
   const cartWithDetails = useMemo(() => {
     return items
       .map((cartItem) => {
-        const product = allProducts.find((p) => p.id === cartItem.productId);
+        const product = dbProducts.find(
+          (p) => String(p.id) === String(cartItem.productId)
+        );
         if (!product) return null;
 
         return {
@@ -55,8 +58,16 @@ export default function Cart() {
           product: product
         } as CartItemDetailed;
       })
-      .filter((item): item is CartItemDetailed => item !== null);
-  }, [items]); // Só recalcula se os itens do carrinho mudarem
+      .filter((item): item is CartItemDetailed => item !== null); // Remove itens nulos da lista (caso algum produto do carrinho tenha sido deletado do banco) e garante a tipagem correta para o TypeScript
+  }, [items, dbProducts]);
+
+  // Preço total dos produtos
+  const total = useMemo(() => {
+    return cartWithDetails.reduce(
+      (acc, item) => acc + item.product.price * item.quantity,
+      0
+    );
+  }, [cartWithDetails]);
 
   async function RemoveProduct(id: string) {
     try {
@@ -90,10 +101,19 @@ export default function Cart() {
   async function loadResources() {
     try {
       setIsFetching(true);
-      // Simulando delay de leitura de banco de dados
-      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const response = await productDatabase.getAll();
+
+      // Converte o ID do banco para String e força a tipagem para o formato aceito pelos componentes visuais da tela
+      const formattedProducts = response.map((p) => ({
+        ...p,
+        id: String(p.id) // Garante que o ID case com o tipo da Store
+      })) as unknown as ProductCardProps[];
+
+      setDbProducts(formattedProducts);
     } catch (e) {
-      Alert.alert('Erro', 'Não foi possível carregar o carrinho');
+      console.log('Erro ao carregar banco no carrinho:', e);
+      Alert.alert('Erro', 'Não foi possível carregar os produtos do carrinho.');
     } finally {
       setIsFetching(false);
     }

@@ -78,7 +78,7 @@ function ProductCardComponent({
     >
       <View style={styles.container} {...rest}>
         <CustomImage
-          image={null}
+          image={data.imageUrl || null}
           size={50}
           color={colors.blue[400]}
           variant="product"
