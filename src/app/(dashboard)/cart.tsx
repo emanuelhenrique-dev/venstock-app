@@ -11,8 +11,9 @@ import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -119,10 +120,11 @@ export default function Cart() {
     }
   }
 
-  useEffect(() => {
-    loadResources();
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      loadResources();
+    }, [])
+  );
   return (
     <SafeAreaView
       style={{
