@@ -197,7 +197,7 @@ export default function Cart() {
                     />
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 10,
                         color:
                           transactionType === 'sale'
                             ? colors.green[500]
@@ -224,7 +224,7 @@ export default function Cart() {
 
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 11,
                         color:
                           transactionType === 'sale'
                             ? colors.green[500]

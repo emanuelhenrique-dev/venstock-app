@@ -131,7 +131,14 @@ function ProductCardComponent({
         {/* LÓGICA DO BOTÃO DINÂMICO */}
         <View style={styles.actionContainer}>
           {quantity === 0 && variant === 'stock' ? (
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                { opacity: quantity >= data.qtdEstoque ? 0.3 : 1 }
+              ]}
+              onPress={handleAdd}
+              disabled={quantity >= data.qtdEstoque}
+            >
               <MaterialIcons
                 name="add-shopping-cart"
                 size={24}
@@ -187,8 +194,8 @@ function ProductCardComponent({
               />
               <TouchableOpacity
                 onPress={handleAdd}
-                disabled={quantity >= 999}
-                style={{ opacity: quantity >= 999 ? 0.4 : 1 }}
+                disabled={quantity >= data.qtdEstoque}
+                style={{ opacity: quantity >= data.qtdEstoque ? 0.4 : 1 }}
               >
                 <LinearGradient
                   colors={
@@ -214,6 +221,7 @@ export const ProductCard = memo(
   ProductCardComponent,
   (prevProps, nextProps) => {
     return (
+      prevProps.variant === nextProps.variant &&
       prevProps.quantity === nextProps.quantity &&
       prevProps.data.id === nextProps.data.id &&
       prevProps.data.qtdEstoque === nextProps.data.qtdEstoque &&
