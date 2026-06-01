@@ -78,22 +78,33 @@ export default function Cart() {
   }, [cartWithDetails]);
 
   async function handleFinishOrder() {
-    if (outOfStockProductIds.length > 0) {
-      Alert.alert(
-        'Atenção',
-        'Existe um ou mais itens no carrinho com estoque zerado. Remova-os para continuar.'
-      );
-      return; // Para a execução aqui e não deixa salvar no banco
-    }
+    try {
+      // Busca os dados mais recentes do banco bem na hora do clique
+      const response = await productDatabase.getAll();
+      const formattedProducts = response.map((p) => ({
+        ...p,
+        id: String(p.id)
+      })) as unknown as ProductCardProps[];
 
-    // 🚀 Se chegou aqui, está tudo certo!
-    if (transactionType === 'sale') {
-      Alert.alert('Sucesso', 'Venda realizada com sucesso!');
-    } else {
-      Alert.alert('Sucesso', 'Retirada registrada com sucesso!');
-    }
+      // 2. Roda a nossa validação. Se ela retornar 'true', significa que o carrinho mudou
+      const cartWasCorrected = validateAndAdjustCartStocks(formattedProducts);
 
-    // ... resto do seu código para salvar no SQLite
+      if (cartWasCorrected) {
+        // Para a execução aqui! O usuário já recebeu os Alertas
+        // e o carrinho já se autocorrigiu na tela, agora ele precisa clicar em finalizar de novo.
+        return;
+      }
+
+      // Se chegou aqui, o estoque está 100% verificado e seguro para prosseguir!
+      if (transactionType === 'sale') {
+        Alert.alert('Sucesso', 'Venda realizada com sucesso!');
+      } else {
+        Alert.alert('Sucesso', 'Retirada registrada com sucesso!');
+      }
+    } catch (error) {
+      console.log('Erro ao finalizar pedido:', error);
+      Alert.alert('Erro', 'Não foi possível concluir a transação.');
+    }
   }
 
   async function RemoveProduct(id: string) {
@@ -128,6 +139,7 @@ export default function Cart() {
   // Função para auditar e corrigir o estoque do carrinho
   function validateAndAdjustCartStocks(formattedProducts: ProductCardProps[]) {
     const currentCartItems = useCartStore.getState().items;
+    let hasChanges = false; // 🟢 Controla se alguma alteração foi feita
 
     currentCartItems.forEach((cartItem) => {
       const dbProduct = formattedProducts.find(
@@ -138,6 +150,7 @@ export default function Cart() {
         //CASO 1: O estoque zerou completamente (Produto esgotado)
         if (dbProduct.qtdEstoque <= 0) {
           removeItem(cartItem.id); // Remove do carrinho automaticamente
+          hasChanges = true;
 
           Alert.alert(
             'Item Removido',
@@ -151,6 +164,7 @@ export default function Cart() {
             dbProduct.qtdEstoque,
             dbProduct.qtdEstoque
           );
+          hasChanges = true;
 
           Alert.alert(
             'Estoque Atualizado',
@@ -159,6 +173,8 @@ export default function Cart() {
         }
       }
     });
+    // Retorna true se alterou algo
+    return hasChanges;
   }
 
   async function loadResources() {
@@ -190,6 +206,7 @@ export default function Cart() {
       loadResources();
     }, [])
   );
+
   return (
     <SafeAreaView
       style={{
@@ -327,7 +344,7 @@ export default function Cart() {
             onChangeText={setDescription}
             total={total}
             onConfirm={handleFinishOrder}
-            disabled={outOfStockProductIds.length > 0}
+            disabled={isFetching}
           />
         </View>
       </KeyboardWrapper>
