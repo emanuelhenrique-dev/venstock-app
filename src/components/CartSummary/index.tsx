@@ -17,16 +17,20 @@ interface CartSummaryProps extends TextInputProps {
   type: 'sale' | 'withdrawal';
   method: string;
   total: number;
+  disabled?: boolean;
   onChangeType: (type: 'sale' | 'withdrawal') => void;
   onChangeMethod: (method: string) => void;
+  onConfirm: () => void;
 }
 
 export function CartSummary({
   type,
   method,
   total,
+  disabled = false,
   onChangeMethod,
   onChangeType,
+  onConfirm,
   ...rest
 }: CartSummaryProps) {
   const Icons: Record<string, any> = {
@@ -197,9 +201,10 @@ export function CartSummary({
           )}
         </View>
         <TouchableOpacity
-          style={[styles.button, { opacity: total <= 0 ? 0.7 : 1 }]}
+          style={[styles.button, { opacity: total <= 0 || disabled ? 0.7 : 1 }]}
           activeOpacity={0.8}
-          disabled={total <= 0}
+          disabled={total <= 0 || disabled}
+          onPress={onConfirm}
         >
           <Text
             style={[

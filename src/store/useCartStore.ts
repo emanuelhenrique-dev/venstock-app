@@ -11,7 +11,7 @@ export type CartItem = {
 export interface CartStore {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  updateQuantity: (id: string, quantity: number, maxStock: number) => void;
   removeItem: (id: string) => void;
 
   getNumber: () => number;
@@ -45,12 +45,17 @@ export const useCartStore = create<CartStore>()(
           };
         }),
 
-      updateQuantity: (id, quantity) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.id === id ? { ...item, quantity } : item
-          )
-        })),
+      updateQuantity: (id, quantity, maxStock) =>
+        set((state) => {
+          // Se a quantidade nova for maior que o estoque, crava no limite máximo
+          const validatedQuantity = quantity > maxStock ? maxStock : quantity;
+
+          return {
+            items: state.items.map((item) =>
+              item.id === id ? { ...item, quantity: validatedQuantity } : item
+            )
+          };
+        }),
 
       removeItem: (id) =>
         set((state) => ({

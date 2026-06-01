@@ -70,6 +70,32 @@ export default function Cart() {
     );
   }, [cartWithDetails]);
 
+  // Descobre a lista de IDs de produtos que estão com estoque zerado no carrinho
+  const outOfStockProductIds = useMemo(() => {
+    return cartWithDetails
+      .filter((item) => item.product.qtdEstoque <= 0)
+      .map((item) => String(item.product.id));
+  }, [cartWithDetails]);
+
+  async function handleFinishOrder() {
+    if (outOfStockProductIds.length > 0) {
+      Alert.alert(
+        'Atenção',
+        'Existe um ou mais itens no carrinho com estoque zerado. Remova-os para continuar.'
+      );
+      return; // Para a execução aqui e não deixa salvar no banco
+    }
+
+    // 🚀 Se chegou aqui, está tudo certo!
+    if (transactionType === 'sale') {
+      Alert.alert('Sucesso', 'Venda realizada com sucesso!');
+    } else {
+      Alert.alert('Sucesso', 'Retirada registrada com sucesso!');
+    }
+
+    // ... resto do seu código para salvar no SQLite
+  }
+
   async function RemoveProduct(id: string) {
     try {
       Alert.alert(
@@ -99,6 +125,42 @@ export default function Cart() {
     }
   }
 
+  // Função para auditar e corrigir o estoque do carrinho
+  function validateAndAdjustCartStocks(formattedProducts: ProductCardProps[]) {
+    const currentCartItems = useCartStore.getState().items;
+
+    currentCartItems.forEach((cartItem) => {
+      const dbProduct = formattedProducts.find(
+        (p) => String(p.id) === String(cartItem.productId)
+      );
+
+      if (dbProduct) {
+        //CASO 1: O estoque zerou completamente (Produto esgotado)
+        if (dbProduct.qtdEstoque <= 0) {
+          removeItem(cartItem.id); // Remove do carrinho automaticamente
+
+          Alert.alert(
+            'Item Removido',
+            `O produto "${dbProduct.name}" foi removido do seu carrinho pois não há mais estoque disponível.`
+          );
+        }
+        // CASO 2: O estoque apenas diminuiu (Quantidade maior que o disponível)
+        else if (cartItem.quantity > dbProduct.qtdEstoque) {
+          updateQuantity(
+            cartItem.id,
+            dbProduct.qtdEstoque,
+            dbProduct.qtdEstoque
+          );
+
+          Alert.alert(
+            'Estoque Atualizado',
+            `A quantidade de "${dbProduct.name}" foi reajustada para o máximo disponível: ${dbProduct.qtdEstoque}`
+          );
+        }
+      }
+    });
+  }
+
   async function loadResources() {
     try {
       setIsFetching(true);
@@ -112,6 +174,9 @@ export default function Cart() {
       })) as unknown as ProductCardProps[];
 
       setDbProducts(formattedProducts);
+
+      // validação
+      validateAndAdjustCartStocks(formattedProducts);
     } catch (e) {
       console.log('Erro ao carregar banco no carrinho:', e);
       Alert.alert('Erro', 'Não foi possível carregar os produtos do carrinho.');
@@ -171,76 +236,80 @@ export default function Cart() {
                 />
               }
               renderItem={({ item }) => (
-                <ProductCard
-                  data={item.product}
-                  quantity={item.quantity}
-                  onChangeQuantity={(val) => updateQuantity(item.cartId, val)}
-                  variant={transactionType}
-                  leftAction={{
-                    icon: 'delete',
-                    onOpen: () => RemoveProduct(item.cartId)
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 4 // Espaçamento entre os elementos
+                <View>
+                  <ProductCard
+                    data={item.product}
+                    quantity={item.quantity}
+                    onChangeQuantity={(val) =>
+                      updateQuantity(item.cartId, val, item.product.qtdEstoque)
+                    }
+                    variant={transactionType}
+                    leftAction={{
+                      icon: 'delete',
+                      onOpen: () => RemoveProduct(item.cartId)
                     }}
                   >
-                    <MaterialIcons
-                      name={transactionType === 'sale' ? 'sell' : 'inventory'}
-                      size={16}
-                      color={
-                        transactionType === 'sale'
-                          ? colors.green[400]
-                          : colors.blue[400]
-                      }
-                    />
-                    <Text
+                    <View
                       style={{
-                        fontSize: 10,
-                        color:
-                          transactionType === 'sale'
-                            ? colors.green[500]
-                            : colors.blue[500],
-                        fontFamily: fontFamily.regular,
-                        includeFontPadding: false
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4 // Espaçamento entre os elementos
                       }}
                     >
-                      {transactionType === 'sale'
-                        ? `${numberToCurrency(item.product.price)} x ${item.quantity}`
-                        : `${item.product.qtdEstoque} - ${item.quantity}`}
-                    </Text>
+                      <MaterialIcons
+                        name={transactionType === 'sale' ? 'sell' : 'inventory'}
+                        size={16}
+                        color={
+                          transactionType === 'sale'
+                            ? colors.green[400]
+                            : colors.blue[400]
+                        }
+                      />
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color:
+                            transactionType === 'sale'
+                              ? colors.green[500]
+                              : colors.blue[500],
+                          fontFamily: fontFamily.regular,
+                          includeFontPadding: false
+                        }}
+                      >
+                        {transactionType === 'sale'
+                          ? `${numberToCurrency(item.product.price)} x ${item.quantity}`
+                          : `${item.product.qtdEstoque} - ${item.quantity}`}
+                      </Text>
 
-                    <MaterialIcons
-                      name="arrow-forward"
-                      size={14}
-                      color={
-                        transactionType === 'sale'
-                          ? colors.green[500]
-                          : colors.blue[500]
-                      }
-                      style={{ marginBottom: -1 }} // Ajuste fino se a fonte ainda "puxar" para baixo
-                    />
-
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        color:
+                      <MaterialIcons
+                        name="arrow-forward"
+                        size={14}
+                        color={
                           transactionType === 'sale'
                             ? colors.green[500]
-                            : colors.blue[500],
-                        fontFamily: fontFamily.bold,
-                        includeFontPadding: false
-                      }}
-                    >
-                      {transactionType === 'sale'
-                        ? `${numberToCurrency(item.product.price * item.quantity)}`
-                        : `${item.product.qtdEstoque - item.quantity} em estoque`}
-                    </Text>
-                  </View>
-                </ProductCard>
+                            : colors.blue[500]
+                        }
+                        style={{ marginBottom: -1 }} // Ajuste fino se a fonte ainda "puxar" para baixo
+                      />
+
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color:
+                            transactionType === 'sale'
+                              ? colors.green[500]
+                              : colors.blue[500],
+                          fontFamily: fontFamily.bold,
+                          includeFontPadding: false
+                        }}
+                      >
+                        {transactionType === 'sale'
+                          ? `${numberToCurrency(item.product.price * item.quantity)}`
+                          : `${item.product.qtdEstoque - item.quantity} em estoque`}
+                      </Text>
+                    </View>
+                  </ProductCard>
+                </View>
               )}
               containerStyle={{ flex: 1 }}
               snapToInterval={100}
@@ -257,6 +326,8 @@ export default function Cart() {
             value={description}
             onChangeText={setDescription}
             total={total}
+            onConfirm={handleFinishOrder}
+            disabled={outOfStockProductIds.length > 0}
           />
         </View>
       </KeyboardWrapper>
