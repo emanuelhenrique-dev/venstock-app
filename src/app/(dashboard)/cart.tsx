@@ -31,6 +31,7 @@ export default function Cart() {
   const [saleMethod, setSaleMethod] = useState('money');
   const [withdrawalMethod, setWithdrawalMethod] = useState('avaria');
   const [description, setDescription] = useState('');
+  const [fee, setFee] = useState(0);
 
   const [isFetching, setIsFetching] = useState(true);
   const { items, updateQuantity, removeItem } = useCartStore();
@@ -343,6 +344,8 @@ export default function Cart() {
             value={description}
             onChangeText={setDescription}
             total={total}
+            fee={fee}
+            onChangeFee={setFee}
             onConfirm={handleFinishOrder}
             disabled={isFetching}
           />

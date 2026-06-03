@@ -10,16 +10,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/theme';
 import { useState } from 'react';
-import { green, opacity } from 'react-native-reanimated/lib/typescript/Colors';
+
 import { numberToCurrency } from '@/utils/numberToCurrency';
+import { CurrencyInput } from '../CurrencyInput';
 
 interface CartSummaryProps extends TextInputProps {
   type: 'sale' | 'withdrawal';
   method: string;
   total: number;
+  fee: number;
   disabled?: boolean;
   onChangeType: (type: 'sale' | 'withdrawal') => void;
   onChangeMethod: (method: string) => void;
+  onChangeFee: (fee: number) => void;
   onConfirm: () => void;
 }
 
@@ -27,12 +30,18 @@ export function CartSummary({
   type,
   method,
   total,
+  fee,
   disabled = false,
   onChangeMethod,
   onChangeType,
+  onChangeFee,
   onConfirm,
   ...rest
 }: CartSummaryProps) {
+  const [isEditingFee, setIsEditingFee] = useState(false);
+
+  const finalPrice = total + fee;
+
   const Icons: Record<string, any> = {
     // Venda
     money: 'money',
@@ -56,7 +65,10 @@ export function CartSummary({
         <TouchableOpacity
           style={[styles.option, { backgroundColor: colors.blue[400] }]}
           activeOpacity={0.8}
-          onPress={() => onChangeType('withdrawal')}
+          onPress={() => {
+            setIsEditingFee(false);
+            onChangeType('withdrawal');
+          }}
         >
           <Text style={[styles.text, { fontSize: 14 }]}>Retirada</Text>
         </TouchableOpacity>
@@ -177,15 +189,65 @@ export function CartSummary({
                 <Text style={styles.text}>{numberToCurrency(total)}</Text>
               </View>
               <View style={styles.summaryContent}>
-                <Text style={styles.text}>Taxa/Serviço:</Text>
-                <Text style={styles.text}>R$ 0,00</Text>
+                <Text style={[styles.text, { flex: 1 }]}>Taxa/Serviço:</Text>
+                {isEditingFee ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6
+                    }}
+                  >
+                    <TouchableOpacity onPress={() => setIsEditingFee(false)}>
+                      <MaterialIcons
+                        name="check"
+                        size={16}
+                        color={colors.white}
+                      />
+                    </TouchableOpacity>
+                    <CurrencyInput
+                      style={{
+                        backgroundColor: colors.white,
+                        color: '#333',
+                        fontSize: 12,
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                        borderRadius: 4,
+                        width: 85,
+                        textAlign: 'right'
+                      }}
+                      onSubmitEditing={() => setIsEditingFee(false)}
+                      value={fee}
+                      onChangeValue={onChangeFee}
+                    />
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6
+                    }}
+                    onPress={() => setIsEditingFee(true)}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons
+                      name="add-circle-outline"
+                      size={16}
+                      color="#fff"
+                    />
+                    <Text style={[styles.text, { includeFontPadding: false }]}>
+                      {numberToCurrency(fee)}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
               <View style={styles.summaryContent}>
                 <Text style={[styles.text, { fontSize: 16 }]}>
                   Preço total:
                 </Text>
                 <Text style={[styles.text, { fontSize: 16 }]}>
-                  {numberToCurrency(total)}
+                  {numberToCurrency(finalPrice)}
                 </Text>
               </View>
             </>
@@ -201,9 +263,12 @@ export function CartSummary({
           )}
         </View>
         <TouchableOpacity
-          style={[styles.button, { opacity: total <= 0 || disabled ? 0.7 : 1 }]}
+          style={[
+            styles.button,
+            { opacity: total <= 0 || disabled || isEditingFee ? 0.7 : 1 }
+          ]}
           activeOpacity={0.8}
-          disabled={total <= 0 || disabled}
+          disabled={total <= 0 || disabled || isEditingFee}
           onPress={onConfirm}
         >
           <Text
@@ -215,7 +280,11 @@ export function CartSummary({
               }
             ]}
           >
-            Finalizar Venda
+            {isEditingFee
+              ? 'Confirmando a taxa'
+              : type === 'sale'
+                ? 'Finalizar Venda'
+                : 'Finalizar Saída'}
           </Text>
         </TouchableOpacity>
       </LinearGradient>
