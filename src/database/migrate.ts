@@ -29,7 +29,28 @@ export async function migrate(database: SQLiteDatabase) {
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
     );
 
+    CREATE TABLE IF NOT EXISTS transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL CHECK(type IN ('sale', 'withdrawal')),
+      category TEXT NOT NULL CHECK(category IN ('money', 'pix', 'avaria', 'vencimento', 'consumo')),
+      description TEXT,
+      fee_value REAL NOT NULL DEFAULT 0.0,
+      total_value REAL NOT NULL,
+      user_name TEXT NOT NULL,
 
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS transaction_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      transaction_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      product_name TEXT NOT NULL,
+      quantity INTEGER NOT NULL,
+      price REAL NOT NULL,
+
+      FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+    );
 
   `);
 }
