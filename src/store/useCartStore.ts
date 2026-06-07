@@ -13,8 +13,8 @@ export interface CartStore {
   addItem: (item: CartItem) => void;
   updateQuantity: (id: string, quantity: number, maxStock: number) => void;
   removeItem: (id: string) => void;
-
   getNumber: () => number;
+  clearCart: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -67,7 +67,9 @@ export const useCartStore = create<CartStore>()(
         return items.reduce((acc, item) => {
           return acc + item.quantity;
         }, 0);
-      }
+      },
+
+      clearCart: () => set({ items: [] })
     }),
     {
       name: '@venstock:cart_storage-1.0.1', // Nome da chave que será salva no dispositivo (única)

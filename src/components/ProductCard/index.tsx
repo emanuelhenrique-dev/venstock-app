@@ -80,7 +80,7 @@ function ProductCardComponent({
         <CustomImage
           image={data.imageUrl || null}
           size={50}
-          color={colors.blue[400]}
+          color={data.color || colors.blue[400]}
           variant="product"
         />
         <View style={styles.content}>

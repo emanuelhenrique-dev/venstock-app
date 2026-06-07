@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
-    padding: 25
+    padding: 20
   },
   textPrimary: {
     color: colors.black,

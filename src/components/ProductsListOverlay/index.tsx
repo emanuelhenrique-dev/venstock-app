@@ -209,7 +209,8 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                         //Removendo se chegar a zero
                         if (cartItem) removeItem(cartItem.id);
                       } else {
-                        if (cartItem) updateQuantity(cartItem.id, newQty);
+                        if (cartItem)
+                          updateQuantity(cartItem.id, newQty, item.qtdEstoque);
                       }
                     }}
                     leftAction={{
@@ -227,6 +228,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                   subtext={`Esta Categoria ainda não possui produtos.`}
                   icon="dropbox"
                   color={colors.green[500]}
+                  style={{ marginLeft: -15 }}
                 />
               }
             />

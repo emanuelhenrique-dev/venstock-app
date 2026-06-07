@@ -6,8 +6,15 @@ import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductCardProps } from '@/components/ProductsListOverlay';
+
 import { useProductDatabase } from '@/database/useProductDatabase';
+import {
+  type TransactionItem,
+  useTransactionDatabase
+} from '@/database/useTransactionDatabase';
+
 import { useCartStore } from '@/store/useCartStore';
+
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -34,9 +41,10 @@ export default function Cart() {
   const [fee, setFee] = useState(0);
 
   const [isFetching, setIsFetching] = useState(true);
-  const { items, updateQuantity, removeItem } = useCartStore();
+  const { items, updateQuantity, removeItem, clearCart } = useCartStore();
 
   const productDatabase = useProductDatabase();
+  const transactionDatabase = useTransactionDatabase();
   const [dbProducts, setDbProducts] = useState<ProductCardProps[]>([]); // Novo estado
 
   // Lógica para decidir qual método e qual função de alteração enviar
@@ -79,6 +87,11 @@ export default function Cart() {
   }, [cartWithDetails]);
 
   async function handleFinishOrder() {
+    if (cartWithDetails.length === 0) {
+      Alert.alert('Aviso', 'Seu carrinho está vazio.');
+      return;
+    }
+
     try {
       // Busca os dados mais recentes do banco bem na hora do clique
       const response = await productDatabase.getAll();
@@ -96,12 +109,35 @@ export default function Cart() {
         return;
       }
 
+      const databaseItems: TransactionItem[] = cartWithDetails.map((item) => ({
+        id: Number(item.product.id),
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }));
+
+      //  Salva a transação e seus itens e atualiza os estoques
+      await transactionDatabase.CreateTransaction({
+        type: transactionType,
+        category: currentMethod as any,
+        description: description.trim() || undefined,
+        fee: fee,
+        total: total,
+        items: databaseItems
+      });
+
       // Se chegou aqui, o estoque está 100% verificado e seguro para prosseguir!
       if (transactionType === 'sale') {
         Alert.alert('Sucesso', 'Venda realizada com sucesso!');
       } else {
         Alert.alert('Sucesso', 'Retirada registrada com sucesso!');
       }
+
+      // RESET
+      setDescription('');
+      setFee(0);
+      clearCart();
+      await loadResources();
     } catch (error) {
       console.log('Erro ao finalizar pedido:', error);
       Alert.alert('Erro', 'Não foi possível concluir a transação.');
