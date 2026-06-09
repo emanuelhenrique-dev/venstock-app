@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/PageHeader';
 import { colors, fontFamily } from '@/theme';
-import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets
@@ -12,19 +12,60 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { List } from '@/components/List';
 import { HistoryCard } from '@/components/HistoryCard';
 import { generalHistory, pixTransactions } from '@/database/historyStorage';
-import { useState } from 'react';
-import { transactionCategoryType } from './cart';
+import { useCallback, useState } from 'react';
+import { transactionType } from './cart';
 import { ButtonToggle } from '@/components/ButtonToggle';
+import { useTransactionDatabase } from '@/database/useTransactionDatabase';
+import { useFocusEffect } from 'expo-router';
 
 export default function Cashier() {
   const [activeTab, setActiveTab] = useState<'pix' | 'history'>('pix');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<transactionCategoryType[]>(['sale']);
+  const [filters, setFilters] = useState<transactionType[]>(['sale']);
+
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+  const transactionDatabase = useTransactionDatabase();
 
   const insets = useSafeAreaInsets();
 
-  // 2. Função para alternar os filtros do histórico geral
-  const toggleFilter = (filter: transactionCategoryType) => {
+  // Função para carregar os dados de transações
+  async function loadHistory() {
+    try {
+      setIsFetching(true);
+      const data = await transactionDatabase.getTransactions();
+
+      const historyData = data.map((item) => ({
+        id: item.id,
+        type: item.type,
+        value: item.total,
+        fee: item.fee,
+        category: item.category,
+        userName: item.user_name,
+        date: item.date,
+        description: item.description,
+        items: item.items.map((prod) => ({
+          id: prod.id,
+          name: prod.name,
+          quantity: prod.quantity,
+          price: prod.price
+        }))
+      }));
+
+      setTransactions(historyData);
+    } catch (error) {
+      console.log('Erro ao carregar os dados do histórico:', error);
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar o histórico do banco de dados.'
+      );
+    } finally {
+      setIsFetching(false);
+    }
+  }
+
+  // Função para alternar os filtros do histórico geral
+  const toggleFilter = (filter: transactionType) => {
     setFilters((prev) => {
       // Se o filtro já existe, remove (a menos que seja o último, para não ficar vazio)
       if (prev.includes(filter)) {
@@ -33,14 +74,20 @@ export default function Cashier() {
       // Se não existe, adiciona
       return [...prev, filter];
     });
-    // Reseta o card expandido ao mudar o filtro evita bugs visuais
+    // Reseta o card expandido ao mudar o filtro
     setExpandedId(null);
   };
 
-  const filteredHistory = generalHistory.filter((item) => {
-    // Se item.category for undefined, o includes retornará false
-    return item.category ? filters.includes(item.category) : false;
+  const filteredHistory = transactions.filter((item) => {
+    // Se item.type for undefined, o includes retornará false
+    return item.type ? filters.includes(item.type) : false;
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHistory();
+    }, [])
+  );
   return (
     <SafeAreaView
       style={{
@@ -218,11 +265,12 @@ export default function Cashier() {
                 </TouchableOpacity>
               </View>
               <View style={{ flex: 1 }}>
-                <List
+                {/* <List
                   data={pixTransactions}
                   keyExtractor={(item) => item.id}
                   renderItem={({ item }) => (
                     <HistoryCard
+                      isPix
                       data={item}
                       // Ao clicar, ativamos o estado para exibir os produtos
                       onPress={() => console.log('teste')}
@@ -232,7 +280,7 @@ export default function Cashier() {
                   decelerationRate="fast"
                   emptyMessage=""
                   containerStyle={{ flex: 1 }}
-                />
+                /> */}
               </View>
             </View>
           </View>
@@ -271,7 +319,7 @@ export default function Cashier() {
               data={filteredHistory} // lista com vendas e retiradas filtrado
               renderItem={({ item }) => (
                 <HistoryCard
-                  data={{ ...item, type: 'general' }}
+                  data={item}
                   isOpen={expandedId === item.id}
                   // Ao clicar, o pai decide se abre o novo ou fecha o que já estava aberto
                   onPress={() =>

@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   },
   mainContent: {
     position: 'relative',
-    padding: 16,
+    padding: 18,
     gap: 16,
     flexDirection: 'row',
     alignItems: 'center'
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   },
   dateText: {
     position: 'absolute',
-    top: 75,
+    top: 81,
     right: 6,
     fontSize: 12,
     fontFamily: fontFamily.regular,
@@ -77,13 +77,13 @@ export const styles = StyleSheet.create({
   },
   itemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[150],
-    gap: 5
+    borderBottomColor: colors.gray[150]
   },
   itemName: {
+    flex: 1,
     fontSize: 12,
     fontFamily: fontFamily.regular,
     color: colors.gray[500]
@@ -91,17 +91,20 @@ export const styles = StyleSheet.create({
   itemQty: {
     fontSize: 12,
     fontFamily: fontFamily.regular,
-    color: colors.gray[500]
+    color: colors.gray[500],
+    marginRight: 4
   },
   itemPrice: {
+    width: '25%',
     fontSize: 12,
     fontFamily: fontFamily.medium,
-    color: colors.gray[500]
+    color: colors.gray[500],
+    textAlign: 'right'
   },
   itemContainer: {
     flex: 1,
     flexDirection: 'row',
-    gap: 5
+    alignItems: 'center'
   },
   arrowOpen: {
     position: 'absolute',
@@ -121,6 +124,7 @@ export const styles = StyleSheet.create({
   // Rodapé do Compartimento
   footer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 4,
     paddingTop: 4,
     gap: 15,

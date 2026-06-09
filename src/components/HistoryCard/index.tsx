@@ -6,39 +6,44 @@ import { MotiView, AnimatePresence } from 'moti';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { styles } from './styles';
-import { transactionCategoryType } from '@/app/(dashboard)/cart';
 import { GradientText } from '../GradientText';
-
-type TransactionType = 'pix' | 'general';
+import { formatProjectDate } from '@/utils/formatterData';
 
 interface HistoryItem {
+  id: string;
   name: string;
   quantity: number;
   price?: number;
 }
 
 export interface HistoryProps {
-  type: TransactionType;
   id: string;
+  type: 'sale' | 'withdrawal';
   value?: number;
-  category?: transactionCategoryType;
+  fee?: number;
+  category?: 'money' | 'pix' | 'avaria' | 'vencimento' | 'consumo';
   userName: string;
   status?: 'Pending' | 'Completed';
   date: string;
-  itemsCount?: number;
   description?: string; // Ex: "Retirada por Avaria"
   items?: HistoryItem[]; // Para a versão geral
-  details?: string;
 }
 
 interface props {
+  isPix?: boolean;
   data: HistoryProps;
   isOpen?: boolean; // Recebe se está aberto
   onPress?: () => void; // Função para avisar o pai que foi clicado
 }
 
-export function HistoryCard({ data, isOpen, onPress }: props) {
-  const isPix = data.type === 'pix';
+export function HistoryCard({ isPix = false, data, isOpen, onPress }: props) {
+  const CATEGORY_LABELS: Record<string, string> = {
+    money: 'Dinheiro',
+    pix: 'Pix',
+    avaria: 'Avaria',
+    vencimento: 'Vencimento',
+    consumo: 'Consumo'
+  };
 
   async function RemoveHistoryItem(id: string, type: string) {
     try {
@@ -70,14 +75,15 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
 
   return (
     <View style={styles.cardContainer}>
-      <Text style={styles.dateText}>{data.date}</Text>
-      {data.type === 'general' && (
+      <Text style={styles.dateText}>{formatProjectDate(data.date)}</Text>
+      //ativar remover transação
+      {false && (
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() =>
             RemoveHistoryItem(
               data.id,
-              data.category === 'sale' ? 'Venda' : 'Retirada'
+              data.type === 'sale' ? 'Venda' : 'Retirada'
             )
           }
         >
@@ -98,7 +104,7 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
             styles.image,
             {
               backgroundColor:
-                data.status === 'Pending' || data.category === 'withdrawal'
+                data.status === 'Pending' || data.type === 'withdrawal'
                   ? colors.blue[100]
                   : colors.green[100]
             }
@@ -106,12 +112,12 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
         >
           <GradientText
             color1={
-              data.status === 'Pending' || data.category === 'withdrawal'
+              data.status === 'Pending' || data.type === 'withdrawal'
                 ? colors.blue[400]
                 : colors.green[400]
             }
             color2={
-              data.status === 'Pending' || data.category === 'withdrawal'
+              data.status === 'Pending' || data.type === 'withdrawal'
                 ? colors.blue[500]
                 : colors.green[500]
             }
@@ -120,7 +126,7 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
               name={
                 !data.category
                   ? 'pix'
-                  : data.category === 'sale'
+                  : data.type === 'sale'
                     ? 'shopping-bag'
                     : 'inventory'
               }
@@ -132,36 +138,37 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
         <View style={styles.headerRow}>
           <Text style={styles.idText}>
             {isPix
-              ? `Transação #PX${data.id}`
-              : `${data.category === 'sale' ? 'Venda' : 'Retirada'} #${data.id}`}
+              ? //saber se o card ta na area pix ou histórico geral
+                `Transação #PX${data.id}`
+              : `TX#${data.id} ${data.type === 'sale' ? 'Venda' : 'Retirada'} `}
           </Text>
-          <Text style={styles.mainInfo}>
-            {isPix || data.category === 'sale'
+          <Text style={styles.mainInfo} numberOfLines={1}>
+            {isPix || data.type === 'sale'
               ? `${numberToCurrency(data.value || 0)} • ${data.userName}`
-              : `${data.itemsCount} Itens • ${data.userName}`}
+              : `2 Itens • ${data.userName}`}
           </Text>
 
           <View style={styles.status}>
-            {data.category && (
+            {data.type && (
               <Text style={[styles.statusText]}>
-                {data.category === 'withdrawal' ? 'Motivo:' : 'Pago com'}
+                {data.type === 'withdrawal' ? 'Motivo:' : 'Pago com'}
               </Text>
             )}
 
             <GradientText
               style={[styles.statusText, { fontFamily: fontFamily.bold }]}
               color1={
-                data.status === 'Pending' || data.category === 'withdrawal'
+                data.status === 'Pending' || data.type === 'withdrawal'
                   ? colors.blue[400]
                   : colors.green[400]
               }
               color2={
-                data.status === 'Pending' || data.category === 'withdrawal'
+                data.status === 'Pending' || data.type === 'withdrawal'
                   ? colors.blue[500]
                   : colors.green[500]
               }
             >
-              {!data.category ? data.status : data.description}
+              {!data.category ? data.status : CATEGORY_LABELS[data.category]}
             </GradientText>
           </View>
         </View>
@@ -171,15 +178,13 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
             name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
             size={20}
             color={
-              data.category === 'withdrawal'
-                ? colors.blue[400]
-                : colors.green[400]
+              data.type === 'withdrawal' ? colors.blue[400] : colors.green[400]
             }
             style={[
               styles.arrowOpen,
               {
                 borderColor:
-                  data.category === 'withdrawal'
+                  data.type === 'withdrawal'
                     ? colors.blue[400]
                     : colors.green[400]
               }
@@ -187,7 +192,6 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
           />
         )}
       </TouchableOpacity>
-
       {/* COMPARTIMENTO EXPANSÍVEL (Geral) */}
       <AnimatePresence>
         {isOpen && (
@@ -199,28 +203,35 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
             style={styles.expandedContent}
           >
             <Text style={styles.itemsTitle}>Itens:</Text>
-
             {data.items?.map((item, index) => (
               <View key={index} style={styles.itemRow}>
-                {item.price && (
+                {/* Bloco da Esquerda: Quantidade e Nome */}
+                <View style={styles.itemContainer}>
+                  <Text style={styles.itemQty}>{item.quantity} x</Text>
+                  {/* O numberOfLines garante que se o nome for gigante, ele vira "..." e não atropela o preço */}
+                  <Text style={styles.itemName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                </View>
+
+                {/* Bloco da Direita: Preço final do item */}
+                {item.price && data.type === 'sale' && (
                   <Text style={styles.itemPrice}>
-                    {numberToCurrency(item.price * item.quantity)} —
+                    {numberToCurrency(item.price * item.quantity)}
                   </Text>
                 )}
-                <View style={styles.itemContainer}>
-                  <Text style={styles.itemQty}>{item.quantity}x</Text>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                </View>
               </View>
             ))}
 
             <View style={styles.footer}>
-              {data.value ? (
+              {data.value && data.type == 'sale' ? (
                 <>
                   <Text style={styles.footerText}>
-                    SubTotal: {numberToCurrency(data.value || 0)}
+                    Sub: {numberToCurrency(data.value - (data.fee || 0) || 0)}
                   </Text>
-                  <Text style={styles.footerText}>Taxa: R$ 0,00</Text>
+                  <Text style={styles.footerText}>
+                    Taxa: {numberToCurrency(data.fee || 0)}
+                  </Text>
                   <Text
                     style={[styles.footerText, { fontFamily: fontFamily.bold }]}
                   >
@@ -231,7 +242,7 @@ export function HistoryCard({ data, isOpen, onPress }: props) {
                 <Text
                   style={[styles.footerText, { fontFamily: fontFamily.medium }]}
                 >
-                  Detalhes: {data.details}
+                  Detalhes: {data.description || 'Sem observações'}
                 </Text>
               )}
             </View>

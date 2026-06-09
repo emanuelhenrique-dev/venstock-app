@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export type transactionCategoryType = 'sale' | 'withdrawal';
+export type transactionType = 'sale' | 'withdrawal';
 export interface CartItemDetailed {
   cartId: string;
   quantity: number;
@@ -33,7 +33,7 @@ export interface CartItemDetailed {
 
 export default function Cart() {
   const [transactionType, setTransactionType] =
-    useState<transactionCategoryType>('sale');
+    useState<transactionType>('sale');
 
   const [saleMethod, setSaleMethod] = useState('money');
   const [withdrawalMethod, setWithdrawalMethod] = useState('avaria');
@@ -250,7 +250,7 @@ export default function Cart() {
         flex: 1,
         paddingHorizontal: 24
       }}
-      edges={['top']}
+      edges={['top', 'bottom']}
     >
       <StatusBar barStyle="dark-content" />
       <PageHeader
