@@ -325,6 +325,7 @@ export default function Cashier() {
                   onPress={() =>
                     setExpandedId(expandedId === item.id ? null : item.id)
                   }
+                  onDeleteSuccess={loadHistory}
                 />
               )}
               keyExtractor={(item) => item.id}

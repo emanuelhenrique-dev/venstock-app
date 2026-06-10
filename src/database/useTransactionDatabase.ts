@@ -127,8 +127,8 @@ export function useTransactionDatabase() {
           date: transaction.created_at,
           user_name: transaction.user_name,
           items: items.map((item) => ({
-            id: String(item.id),
-            productID: String(item.product_id),
+            id: String(item.product_id),
+            historyItemId: String(item.id),
             name: item.product_name,
             quantity: item.quantity,
             price: item.price
@@ -143,5 +143,32 @@ export function useTransactionDatabase() {
     }
   }
 
-  return { CreateTransaction, getTransactions };
+  async function deleteTransaction(
+    transactionId: number,
+    items: Array<{ id: string; quantity: number }>,
+    shouldRestoreStock: boolean
+  ) {
+    await database.withTransactionAsync(async () => {
+      //  Se o usuário confirmou que quer devolver, atualiza o estoque
+      if (shouldRestoreStock) {
+        for (const item of items) {
+          // console.log(
+          //   `ESTORNANDO -> Produto ID Real: ${item.id} | Qtd: ${item.quantity}`
+          // );
+
+          await database.runAsync(
+            `UPDATE products SET quantity = quantity + ? WHERE id = ?`,
+            [Number(item.quantity), Number(item.id)] // Agora o item.id vai vir preenchido perfeitamente!
+          );
+        }
+      }
+
+      //  Deleta a transação do histórico de forma definitiva
+      await database.runAsync(`DELETE FROM transactions WHERE id = ?`, [
+        transactionId
+      ]);
+    });
+  }
+
+  return { CreateTransaction, getTransactions, deleteTransaction };
 }
