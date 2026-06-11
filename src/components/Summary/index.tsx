@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { colors } from '@/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import { memo } from 'react';
 
 export type SummaryProps = {
   details: string;
@@ -23,7 +24,7 @@ interface Props extends TouchableOpacityProps {
   sale?: boolean;
 }
 
-export function Summary({
+export function SummaryComponent({
   label,
   data,
   icon,
@@ -51,3 +52,5 @@ export function Summary({
     </TouchableOpacity>
   );
 }
+
+export const Summary = memo(SummaryComponent);

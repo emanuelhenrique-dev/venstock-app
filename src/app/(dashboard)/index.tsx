@@ -28,6 +28,10 @@ import {
   useCategoryDatabase
 } from '@/database/useCategoryDatabase';
 import { EmptyComponent } from '@/components/EmptyComponent';
+import {
+  SummaryPeriod,
+  useTransactionDatabase
+} from '@/database/useTransactionDatabase';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -39,29 +43,33 @@ export type selectedCategoryProps = {
 
 export default function Index() {
   const [userName, setUserName] = useState('');
-  const [periodIndex, setPeriodIndex] = useState(0); // 0: 24h, 1: Semana, 2: Mês, 3: Ano
+  const [periodIndex, setPeriodIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] =
     useState<selectedCategoryProps | null>(null);
 
   const [categories, setCategories] = useState<CategoryCardProps[]>([]);
+  const [itemsSoldCount, setItemsSoldCount] = useState('0');
   const [loading, setLoading] = useState(true);
 
   const { getUserData } = userStorage();
   const CategoryDatabase = useCategoryDatabase();
+  const transactionDatabase = useTransactionDatabase();
 
   const insets = useSafeAreaInsets();
 
   //Base de dados fictícia para os períodos
-  const salesPeriods = [
-    { label: 'Últimas 24h', value: '169' },
-    { label: 'Última Semana', value: '1.240' },
-    { label: 'Último Mês', value: '4.850' },
-    { label: 'Último Ano', value: '52.300' }
+  const PERIODS_CONFIG: { key: SummaryPeriod; label: string }[] = [
+    { key: '24h', label: 'Últimas 24h' },
+    { key: '7days', label: 'Últimos 7 dias' },
+    { key: '30days', label: 'Últimos 30 dias' },
+    { key: '6months', label: 'Últimos 6 meses' },
+    { key: '1year', label: 'Último ano' },
+    { key: 'all', label: 'Todo o período' }
   ];
 
   //Função para alternar o período (o "Ciclo")
   function handleNextPeriod() {
-    setPeriodIndex((prev) => (prev + 1) % salesPeriods.length);
+    setPeriodIndex((prev) => (prev + 1) % PERIODS_CONFIG.length);
   }
 
   async function loadProfile(): Promise<string | null> {
@@ -94,19 +102,36 @@ export default function Index() {
     }
   }
 
+  async function loadPeriodSales(currentIndex: number) {
+    try {
+      const currentPeriodKey = PERIODS_CONFIG[currentIndex].key;
+      const summaryData =
+        await transactionDatabase.getSalesSummaryByPeriod(currentPeriodKey);
+      setItemsSoldCount(String(summaryData.totalItemsSold));
+    } catch (error) {
+      console.log('Erro ao buscar resumo de vendas por período:', error);
+    }
+  }
+
   async function fetchData() {
     const categoryDataPromise = fetchCategories();
     const profileDataPromise = loadProfile();
 
-    const [categoryData, profileData] = await Promise.all([
+    const currentPeriodKey = PERIODS_CONFIG[periodIndex].key;
+    const salesSummaryPromise =
+      transactionDatabase.getSalesSummaryByPeriod(currentPeriodKey);
+
+    const [categoryData, profileData, salesSummary] = await Promise.all([
       categoryDataPromise,
-      profileDataPromise
+      profileDataPromise,
+      salesSummaryPromise
     ]);
 
     console.log(categoryData);
 
     setUserName(profileData || 'Usuário desconhecido');
     setCategories(categoryData);
+    setItemsSoldCount(String(salesSummary.totalItemsSold));
 
     setLoading(false);
   }
@@ -117,6 +142,13 @@ export default function Index() {
       setSelectedCategory(null);
     }, [])
   );
+
+  //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
+  useEffect(() => {
+    if (!loading) {
+      loadPeriodSales(periodIndex);
+    }
+  }, [periodIndex]);
 
   if (loading) {
     return (
@@ -174,8 +206,8 @@ export default function Index() {
             sale
             label="produtos vendidos"
             data={{
-              details: salesPeriods[periodIndex].label, // Texto dinâmico
-              value: salesPeriods[periodIndex].value // Valor dinâmico
+              details: PERIODS_CONFIG[periodIndex].label, // Texto dinâmico
+              value: itemsSoldCount // Valor dinâmico
             }}
             icon="shopping-bag"
             gradient={[colors.green[400], colors.green[500]]}

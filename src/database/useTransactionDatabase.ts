@@ -2,6 +2,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { categories } from './storage';
 import { userStorage } from './userStorage';
 
+export type SummaryPeriod =
+  | '24h'
+  | '7days'
+  | '30days'
+  | '6months'
+  | '1year'
+  | 'all';
+
 export type TransactionItem = {
   id: number;
   name: string;
@@ -36,6 +44,19 @@ export type TransactionItemResponse = {
   quantity: number;
   price: number;
 };
+
+// Interface para o retorno do Summary de Vendas
+export interface SalesSummaryResponse {
+  totalItemsSold: number;
+  totalRevenue: number;
+}
+
+// Interface para os produtos/categorias mais vendidos
+export interface TopSoldResponse {
+  id: number;
+  name: string;
+  totalSold: number;
+}
 
 export function useTransactionDatabase() {
   const database = useSQLiteContext();
@@ -170,5 +191,70 @@ export function useTransactionDatabase() {
     });
   }
 
-  return { CreateTransaction, getTransactions, deleteTransaction };
+  // BUSCA O RESUMO DE PRODUTOS VENDIDOS POR PERÍODO
+  async function getSalesSummaryByPeriod(
+    period: SummaryPeriod
+  ): Promise<SalesSummaryResponse> {
+    let timeModifier = '';
+
+    switch (period) {
+      case '24h':
+        timeModifier = '-1 day';
+        break;
+      case '7days':
+        timeModifier = '-7 days';
+        break;
+      case '30days':
+        timeModifier = '-30 days';
+        break;
+      case '6months':
+        timeModifier = '-6 months';
+        break;
+      case '1year':
+        timeModifier = '-1 year';
+        break;
+      case 'all':
+      default:
+        timeModifier = 'all';
+        break;
+    }
+
+    // Se for 'all', não aplicamos filtro de data nenhum
+    if (timeModifier === 'all') {
+      const queryAll = `
+      SELECT 
+        COALESCE(SUM(ti.quantity), 0) as totalItemsSold,
+        COALESCE(SUM(ti.quantity * ti.price), 0) as totalRevenue
+      FROM transaction_items ti
+      INNER JOIN transactions t ON t.id = ti.transaction_id
+      WHERE t.type = 'sale'
+    `;
+      const result =
+        await database.getFirstAsync<SalesSummaryResponse>(queryAll);
+      return result || { totalItemsSold: 0, totalRevenue: 0 };
+    }
+
+    const queryWithFilter = `
+    SELECT 
+      COALESCE(SUM(ti.quantity), 0) as totalItemsSold,
+      COALESCE(SUM(ti.quantity * ti.price), 0) as totalRevenue
+    FROM transaction_items ti
+    INNER JOIN transactions t ON t.id = ti.transaction_id
+    WHERE t.type = 'sale' 
+    AND datetime(t.created_at) >= datetime('now', ?)
+  `;
+
+    const result = await database.getFirstAsync<SalesSummaryResponse>(
+      queryWithFilter,
+      [timeModifier]
+    );
+    return result || { totalItemsSold: 0, totalRevenue: 0 };
+  }
+
+  return {
+    CreateTransaction,
+    getTransactions,
+    deleteTransaction,
+    getSalesSummaryByPeriod
+  };
 }
