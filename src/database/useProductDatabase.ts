@@ -103,7 +103,13 @@ export function useProductDatabase() {
           p.price,
           p.quantity AS qtdEstoque,
           p.min_stock AS minEstoque,
-          0 AS qtdVendidos,
+          COALESCE(
+            (SELECT SUM(ti.quantity)
+             FROM transaction_items ti
+             INNER JOIN transactions t ON t.id = ti.transaction_id
+             WHERE ti.product_id = p.id AND t.type = 'sale'),
+            0
+          ) AS qtdVendidos,
           p.barcode AS codBar,       
           p.color,
           p.image_url AS imageUrl,

@@ -51,13 +51,6 @@ export interface SalesSummaryResponse {
   totalRevenue: number;
 }
 
-// Interface para os produtos/categorias mais vendidos
-export interface TopSoldResponse {
-  id: number;
-  name: string;
-  totalSold: number;
-}
-
 export function useTransactionDatabase() {
   const database = useSQLiteContext();
   const { getUserData } = userStorage();

@@ -14,6 +14,7 @@ export type CategoryResponse = {
   id: number;
   name: string;
   qtdEstoque: number;
+  qtdProdutosUnicos: number;
   qtdVendidos: number;
   imageUrl?: string | null;
   color: string;
@@ -53,7 +54,15 @@ export function useCategoryDatabase() {
           c.id,
           c.name,
           COALESCE(SUM(p.quantity), 0) AS qtdEstoque,
-          0 AS qtdVendidos,
+          COALESCE(COUNT(p.id), 0) AS qtdProdutosUnicos,
+          COALESCE(
+            (SELECT SUM(ti.quantity)
+             FROM transaction_items ti
+             INNER JOIN products prod ON prod.id = ti.product_id
+             INNER JOIN transactions t ON t.id = ti.transaction_id
+             WHERE prod.category_id = c.id AND t.type = 'sale'),
+             0
+          ) AS qtdVendidos,
           c.image_url AS imageUrl,
           c.color,
           c.created_at

@@ -13,6 +13,7 @@ export type CategoryCardProps = {
   id: string;
   name: string;
   qtdEstoque: number;
+  qtdProdutosUnicos: number;
   qtdVendidos: number;
   imageUrl?: string | null;
   color?: string;
@@ -20,9 +21,10 @@ export type CategoryCardProps = {
 
 interface Props extends TouchableOpacityProps {
   data: CategoryCardProps;
+  showUniqueProducts: boolean;
 }
 
-export function CategoryCard({ data, ...rest }: Props) {
+export function CategoryCard({ data, showUniqueProducts, ...rest }: Props) {
   return (
     <TouchableOpacity style={styles.container} {...rest}>
       <CustomImage
@@ -43,7 +45,7 @@ export function CategoryCard({ data, ...rest }: Props) {
               size={12}
             />
             <Text style={[styles.status, { color: colors.blue[400] }]}>
-              {data.qtdEstoque}
+              {!showUniqueProducts ? data.qtdEstoque : data.qtdProdutosUnicos}
             </Text>
           </View>
           <View style={styles.statusContainer}>

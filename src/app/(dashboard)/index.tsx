@@ -43,7 +43,16 @@ export type selectedCategoryProps = {
 
 export default function Index() {
   const [userName, setUserName] = useState('');
+  const [totalStock, setTotalStock] = useState('0');
+  const [lowStockCount, setLowStockCount] = useState('0');
+
+  //Estado para controlar a mostra as vendas de um período especifico
   const [periodIndex, setPeriodIndex] = useState(0);
+
+  //Estado para controlar se mostra "Estoque Total" ou "Produtos Únicos"
+  const [showUniqueProducts, setShowUniqueProducts] = useState(false);
+  const [uniqueProductsCount, setUniqueProductsCount] = useState('0');
+
   const [selectedCategory, setSelectedCategory] =
     useState<selectedCategoryProps | null>(null);
 
@@ -72,6 +81,11 @@ export default function Index() {
     setPeriodIndex((prev) => (prev + 1) % PERIODS_CONFIG.length);
   }
 
+  //Função para alternar o modo do card de estoque ao clicar
+  function handleToggleStockMode() {
+    setShowUniqueProducts((prev) => !prev);
+  }
+
   async function loadProfile(): Promise<string | null> {
     try {
       const data = await getUserData();
@@ -92,6 +106,7 @@ export default function Index() {
         name: item.name,
         qtdEstoque: item.qtdEstoque,
         qtdVendidos: item.qtdVendidos,
+        qtdProdutosUnicos: item.qtdProdutosUnicos,
         imageUrl: item.imageUrl ?? undefined,
         color: item.color
       }));
@@ -132,6 +147,20 @@ export default function Index() {
     setUserName(profileData || 'Usuário desconhecido');
     setCategories(categoryData);
     setItemsSoldCount(String(salesSummary.totalItemsSold));
+
+    // 🟢 Soma o estoque total de todas as unidades
+    const sumStock = categoryData.reduce(
+      (acc, cat) => acc + (cat.qtdEstoque || 0),
+      0
+    );
+    setTotalStock(String(sumStock));
+
+    // 🟢 Soma a quantidade de produtos diferentes cadastrados
+    const sumUnique = categoryData.reduce(
+      (acc, cat) => acc + (cat.qtdProdutosUnicos || 0),
+      0
+    );
+    setUniqueProductsCount(String(sumUnique));
 
     setLoading(false);
   }
@@ -196,10 +225,17 @@ export default function Index() {
           }}
         >
           <Summary
-            label="produtos em estoque"
-            data={{ details: '5 baixos', value: '527' }}
+            label={
+              showUniqueProducts ? 'produtos únicos' : 'produtos em estoque'
+            }
+            data={{
+              // Se for produtos únicos, você pode mudar o detalhe para "cadastrados" ou manter os baixos
+              details: `${lowStockCount} baixos`,
+              value: showUniqueProducts ? uniqueProductsCount : totalStock
+            }}
             icon="inventory"
             gradient={[colors.blue[400], colors.blue[500]]}
+            onPress={handleToggleStockMode}
           />
 
           <Summary
@@ -264,6 +300,7 @@ export default function Index() {
             renderItem={({ item }) => (
               <CategoryCard
                 data={item}
+                showUniqueProducts={showUniqueProducts}
                 // Ao clicar, ativamos o estado para exibir os produtos
                 onPress={() =>
                   setSelectedCategory({
