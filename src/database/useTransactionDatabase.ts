@@ -1,5 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { categories } from './storage';
+
 import { userStorage } from './userStorage';
 
 export type SummaryPeriod =

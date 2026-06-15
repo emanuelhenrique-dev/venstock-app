@@ -68,23 +68,24 @@ export function useProductDatabase() {
   async function getAll() {
     try {
       const query = `
-        SELECT 
-          p.id,
-          p.name,
-          p.price,
-          p.quantity AS qtdEstoque,
-          p.min_stock AS minEstoque,
-          0 AS qtdVendidos,
-          p.barcode AS codBar,       
-          p.color,
-          p.image_url AS imageUrl,
-          p.category_id,
-          c.name AS category_name,
-          p.created_at
-        FROM products p
-        INNER JOIN categories c ON c.id = p.category_id
-        ORDER BY c.name ASC, p.name ASC
-      `;
+      SELECT 
+        p.id,
+        p.name,
+        p.price,
+        p.quantity AS qtdEstoque,
+        p.min_stock AS minEstoque,
+        0 AS qtdVendidos,
+        p.barcode AS codBar,       
+        p.color,
+        p.image_url AS imageUrl,
+        p.category_id,
+        c.name AS category_name,
+        p.created_at
+      FROM products p
+      INNER JOIN categories c ON c.id = p.category_id
+      ORDER BY c.name ASC, p.name ASC
+    `;
+
       const response = await database.getAllAsync<ProductResponse>(query);
       return response;
     } catch (error) {
@@ -165,6 +166,53 @@ export function useProductDatabase() {
     }
   }
 
+  // buscar Todos os Produtos com ou sem filtro
+  async function searchAll(text: string) {
+    try {
+      const query = `
+        SELECT 
+          p.id,
+          p.name,
+          p.price,
+          p.quantity AS qtdEstoque,
+          p.min_stock AS minEstoque,
+          COALESCE(
+            (SELECT SUM(ti.quantity)
+             FROM transaction_items ti
+             INNER JOIN transactions t ON t.id = ti.transaction_id
+             WHERE ti.product_id = p.id AND t.type = 'sale'),
+            0
+          ) AS qtdVendidos,
+          p.barcode AS codBar,       
+          p.color,
+          p.image_url AS imageUrl,
+          p.category_id,
+          c.name AS category_name,
+          p.created_at
+        FROM products p
+        INNER JOIN categories c ON c.id = p.category_id
+
+        -- O Filtro : Procura por nome ou código de barras
+        WHERE P.name LIKE ? OR p.barcode LIKE ?
+
+        ORDER BY c.name ASC, p.name ASC
+      `;
+
+      // O '%' serve para o SQL entender que o texto pode estar em qualquer parte da palavra
+      const searchTerm = `%${text}%`;
+
+      const response = await database.getAllAsync<ProductResponse>(query, [
+        searchTerm,
+        searchTerm
+      ]);
+
+      return response;
+    } catch (error) {
+      console.log('Erro ao buscar lista de produtos:', error);
+      throw error;
+    }
+  }
+
   // Atualizar Produto
   async function updateProduct(data: ProductUpdate) {
     try {
@@ -218,5 +266,13 @@ export function useProductDatabase() {
     }
   }
 
-  return { getAll, getByCategory, show, create, updateProduct, removeProduct };
+  return {
+    getAll,
+    getByCategory,
+    show,
+    create,
+    searchAll,
+    updateProduct,
+    removeProduct
+  };
 }

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  SectionList,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -32,6 +33,11 @@ import {
   SummaryPeriod,
   useTransactionDatabase
 } from '@/database/useTransactionDatabase';
+import {
+  ProductResponse,
+  useProductDatabase
+} from '@/database/useProductDatabase';
+import { SearchList, SearchResults } from '@/components/SearchList';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -53,6 +59,11 @@ export default function Index() {
   const [showUniqueProducts, setShowUniqueProducts] = useState(false);
   const [uniqueProductsCount, setUniqueProductsCount] = useState('0');
 
+  //Estado para controlar a busca
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResults[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const [selectedCategory, setSelectedCategory] =
     useState<selectedCategoryProps | null>(null);
 
@@ -62,6 +73,7 @@ export default function Index() {
 
   const { getUserData } = userStorage();
   const CategoryDatabase = useCategoryDatabase();
+  const productDatabase = useProductDatabase();
   const transactionDatabase = useTransactionDatabase();
 
   const insets = useSafeAreaInsets();
@@ -122,9 +134,55 @@ export default function Index() {
       const currentPeriodKey = PERIODS_CONFIG[currentIndex].key;
       const summaryData =
         await transactionDatabase.getSalesSummaryByPeriod(currentPeriodKey);
+
       setItemsSoldCount(String(summaryData.totalItemsSold));
     } catch (error) {
       console.log('Erro ao buscar resumo de vendas por período:', error);
+    }
+  }
+
+  function groupProductsByCategory(
+    products: ProductResponse[]
+  ): SearchResults[] {
+    const groups: { [key: string]: ProductResponse[] } = {};
+
+    // Como o banco já traz ordenado por categoria, o agrupamento mantém a ordem perfeita
+    products.forEach((product) => {
+      const categoryName = product.category_name || 'Sem categoria';
+
+      if (!groups[categoryName]) {
+        groups[categoryName] = [];
+      }
+      groups[categoryName].push(product);
+    });
+
+    // Transforma o objeto no Array esperado pelo SectionList
+    return Object.keys(groups).map((categoryName) => ({
+      title: categoryName,
+      data: groups[categoryName]
+    }));
+  }
+
+  async function handleSearch() {
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      // Chama a função nova que criamos no seu database de produtos
+      const response = await productDatabase.searchAll(searchQuery);
+
+      // Agrupa os resultados por categoria
+      const formattedResults = groupProductsByCategory(response);
+      console.log(formattedResults);
+      setSearchResults(formattedResults);
+    } catch (error) {
+      console.log('Erro ao buscar produtos:', error);
+    } finally {
+      setIsSearching(false);
     }
   }
 
@@ -169,8 +227,15 @@ export default function Index() {
     useCallback(() => {
       fetchData();
       setSelectedCategory(null);
+      setPeriodIndex(1);
     }, [])
   );
+
+  //useEffect para rodar a busca toda vez que o usuário digitar ou escanear
+  useEffect(() => {
+    handleSearch();
+    setSelectedCategory(null);
+  }, [searchQuery]);
 
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
@@ -286,47 +351,60 @@ export default function Index() {
           </TouchableOpacity>
         </View>
 
-        <SearchInput placeholder="Buscar produto..." />
+        <SearchInput
+          placeholder="Buscar produto..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          setIsSearching={setIsSearching}
+        />
         <View
           style={{
             flex: 1,
             position: 'relative'
           }}
         >
-          {/* LISTA DE CATEGORIAS (Fica no fundo) */}
-          <List
-            data={categories}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CategoryCard
-                data={item}
-                showUniqueProducts={showUniqueProducts}
-                // Ao clicar, ativamos o estado para exibir os produtos
-                onPress={() =>
-                  setSelectedCategory({
-                    id: item.id,
-                    name: item.name,
-                    image: item.imageUrl ?? null,
-                    color: item.color ?? null
-                  })
-                }
+          {searchQuery.trim().length > 0 ? (
+            <View style={{ flex: 1 }}>
+              <SearchList
+                searchResults={searchResults}
+                isSearching={isSearching}
               />
-            )}
-            snapToInterval={200}
-            decelerationRate="fast"
-            emptyMessage="Nenhuma categoria criada."
-            ListEmptyComponent={
-              <EmptyComponent
-                text="Nenhuma categoria por aqui"
-                subtext="Crie categorias para organizar o seu estoque de produtos."
-                icon="view-list"
-                color={colors.blue[500]}
-              />
-            }
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + 40
-            }}
-          />
+            </View>
+          ) : (
+            <List
+              data={categories}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <CategoryCard
+                  data={item}
+                  showUniqueProducts={showUniqueProducts}
+                  // Ao clicar, ativamos o estado para exibir os produtos
+                  onPress={() =>
+                    setSelectedCategory({
+                      id: item.id,
+                      name: item.name,
+                      image: item.imageUrl ?? null,
+                      color: item.color ?? null
+                    })
+                  }
+                />
+              )}
+              snapToInterval={200}
+              decelerationRate="fast"
+              emptyMessage="Nenhuma categoria criada."
+              ListEmptyComponent={
+                <EmptyComponent
+                  text="Nenhuma categoria por aqui"
+                  subtext="Crie categorias para organizar o seu estoque de produtos."
+                  icon="view-list"
+                  color={colors.blue[500]}
+                />
+              }
+              contentContainerStyle={{
+                paddingBottom: insets.bottom + 40
+              }}
+            />
+          )}
 
           {/* 2. CHAME O COMPONENTE SOBREPOSTO AQUI */}
           {/* Ele fica depois da lista no JSX para cobri-la */}

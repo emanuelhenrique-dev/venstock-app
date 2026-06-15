@@ -11,9 +11,10 @@ import { fontFamily } from '@/theme';
 interface loadingProps {
   width: number;
   height: number;
+  text?: string;
 }
 
-export const Loading = React.memo(({ width, height }: loadingProps) => {
+export const Loading = React.memo(({ width, height, text }: loadingProps) => {
   return (
     <View style={styles.container}>
       <MotiView
@@ -46,7 +47,7 @@ export const Loading = React.memo(({ width, height }: loadingProps) => {
           fontSize: 14
         }}
       >
-        Carregando...
+        {text ? text : 'Carregando...'}
       </Text>
     </View>
   );
