@@ -1,6 +1,13 @@
 import { PageHeader } from '@/components/PageHeader';
 import { colors, fontFamily } from '@/theme';
-import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets
@@ -11,12 +18,20 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { List } from '@/components/List';
 import { HistoryCard } from '@/components/HistoryCard';
-import { generalHistory, pixTransactions } from '@/database/historyStorage';
+
 import { useCallback, useState } from 'react';
 import { transactionType } from './cart';
 import { ButtonToggle } from '@/components/ButtonToggle';
 import { useTransactionDatabase } from '@/database/useTransactionDatabase';
 import { useFocusEffect } from 'expo-router';
+
+import { EmptyComponent } from '@/components/EmptyComponent';
+import { fetchGatewayPaymentsExtract } from '@/utils/fetchGatewayPaymentsExtract';
+import ManualPixGenerator from '@/components/ManualPixGenerator';
+
+// Verificação dinâmica baseada no Gateway
+const GATEWAY_TOKEN = process.env.EXPO_PUBLIC_MERCADO_PAGO_TOKEN || '';
+const hasToken = GATEWAY_TOKEN.trim().length > 0;
 
 export default function Cashier() {
   const [activeTab, setActiveTab] = useState<'pix' | 'history'>('pix');
@@ -25,8 +40,13 @@ export default function Cashier() {
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isFetching, setIsFetching] = useState(true);
-  const transactionDatabase = useTransactionDatabase();
 
+  //estados dedicados exclusivamente para gerenciar o Pix
+  const [pixTransactions, setPixTransactions] = useState<any[]>([]);
+  const [isFetchingPix, setIsFetchingPix] = useState(false);
+  const [pixError, setPixError] = useState(false);
+
+  const transactionDatabase = useTransactionDatabase();
   const insets = useSafeAreaInsets();
 
   // Função para carregar os dados de transações
@@ -64,6 +84,43 @@ export default function Cashier() {
     }
   }
 
+  // Função segura para buscar os dados do Mercado Pago
+  async function loadPixHistory() {
+    try {
+      setIsFetchingPix(true);
+      setPixError(false); // 🟢 Reseta o erro antes de tentar buscar
+
+      const apiResults = await fetchGatewayPaymentsExtract();
+
+      console.log(
+        '--- DADOS CRUS DO GATEWAY ---',
+        JSON.stringify(apiResults.slice(0, 2), null, 2)
+      );
+
+      // Se a API retornar vazio por erro interno do utilitário (ex: token inválido/expirado)
+      // você pode opcionalmente disparar o erro aqui, mas vamos tratar o catch do Axios:
+      const formattedPix = apiResults.map((payment: any) => ({
+        id: String(payment.id),
+        type: 'sale',
+        value: payment.transaction_amount,
+        category: 'Pix',
+        status: payment.status,
+        userName:
+          payment.payer?.first_name || payment.payer?.email || 'Cliente Pix',
+        date: payment.date_created,
+        description: `Ref: ${payment.id} | ${payment.status_detail} | Comprador: ${payment.payer?.email || 'N/A'}`,
+        items: []
+      }));
+
+      setPixTransactions(formattedPix);
+    } catch (error) {
+      console.log('Erro ao carregar o extrato Pix:', error);
+      setPixError(true); // Ativa o estado de erro se a requisição falhar
+    } finally {
+      setIsFetchingPix(false);
+    }
+  }
+
   // Função para alternar os filtros do histórico geral
   const toggleFilter = (filter: transactionType) => {
     setFilters((prev) => {
@@ -86,8 +143,16 @@ export default function Cashier() {
   useFocusEffect(
     useCallback(() => {
       loadHistory();
+
+      //  Só busca na API externa se de fato houver um token configurado
+      if (hasToken) {
+        loadPixHistory();
+      } else {
+        setPixTransactions([]);
+      }
     }, [])
   );
+
   return (
     <SafeAreaView
       style={{
@@ -160,77 +225,7 @@ export default function Cashier() {
       <View style={{ flex: 1, marginTop: 8 }}>
         {activeTab === 'pix' ? (
           <View style={{ flex: 1, gap: 20 }}>
-            <View style={{ alignItems: 'center', gap: 4 }}>
-              <View
-                style={{
-                  backgroundColor: colors.white,
-                  padding: 12,
-                  borderRadius: 6,
-                  // Se quiser aquela sombra suave:
-                  elevation: 4,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8
-                }}
-              >
-                <QRCode
-                  value="00020126360014BR.GOV.BCB.PIX0114+55869996524335204000053039865802BR5925Antonia Selma dos Anjos F6009SAO PAULO62140510yuTWrb89oi6304B508"
-                  size={180}
-                  color={colors.black}
-                />
-              </View>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  justifyContent: 'center',
-                  fontSize: 14,
-                  fontFamily: fontFamily.regular,
-                  color: colors.gray[500],
-                  marginTop: 16,
-                  includeFontPadding: false
-                }}
-              >
-                Escaneie o QR Code acima para receber o pagamento via Pix ou
-                copie o código abaixo:
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  backgroundColor: colors.gray[150],
-                  padding: 12,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.green[500],
-                  alignItems: 'center',
-                  marginTop: 12
-                }}
-              >
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    flex: 1,
-                    color: colors.black,
-                    fontSize: 14,
-                    fontFamily: fontFamily.regular,
-                    includeFontPadding: false
-                  }}
-                >
-                  00020101021226850014br.gov.bcb.pix...
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    /* Lógica de copiar */
-                  }}
-                >
-                  <MaterialIcons
-                    name="content-copy"
-                    size={20}
-                    color={colors.green[500]}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
+            <ManualPixGenerator />
             <View style={{ flex: 1 }}>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
@@ -252,35 +247,73 @@ export default function Cashier() {
                     Transações Pix
                   </Text>
                 </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    /* Lógica para atualizar */
-                  }}
-                >
-                  <MaterialIcons
-                    name="cached"
-                    size={24}
-                    color={colors.green[500]}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={{ flex: 1 }}>
-                {/* <List
-                  data={pixTransactions}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <HistoryCard
-                      isPix
-                      data={item}
-                      // Ao clicar, ativamos o estado para exibir os produtos
-                      onPress={() => console.log('teste')}
+                {hasToken && (
+                  <TouchableOpacity onPress={loadPixHistory}>
+                    <MaterialIcons
+                      name="cached"
+                      size={24}
+                      color={colors.green[500]}
                     />
-                  )}
-                  snapToInterval={100}
-                  decelerationRate="fast"
-                  emptyMessage=""
-                  containerStyle={{ flex: 1 }}
-                /> */}
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={{ flex: 1, paddingBottom: 60 }}>
+                {isFetchingPix ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.green[500]}
+                    style={{ marginTop: 20 }}
+                  />
+                ) : (
+                  <List
+                    data={pixTransactions}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <HistoryCard
+                        isPix
+                        data={item}
+                        isOpen={expandedId === item.id}
+                        onPress={() =>
+                          setExpandedId(expandedId === item.id ? null : item.id)
+                        }
+                        onDeleteSuccess={() => {}}
+                      />
+                    )}
+                    snapToInterval={100}
+                    decelerationRate="fast"
+                    ListEmptyComponent={
+                      <EmptyComponent
+                        text={
+                          !hasToken
+                            ? 'Integração Desabilitada'
+                            : pixError
+                              ? 'Erro de Conexão'
+                              : 'Nenhum Pix recente'
+                        }
+                        subtext={
+                          !hasToken
+                            ? 'A sincronização automática de pagamentos não está ativa nesta versão.'
+                            : pixError
+                              ? 'Não foi possível atualizar o extrato digital. Verifique sua internet ou tente novamente.'
+                              : 'Nenhum pagamento digital recente foi identificado para este caixa.'
+                        }
+                        icon={
+                          !hasToken
+                            ? 'api-off'
+                            : pixError
+                              ? 'wifi-off'
+                              : 'currency-usd-off'
+                        }
+                        size={50}
+                        color={pixError ? colors.gray[400] : colors.green[400]}
+                      />
+                    }
+                    containerStyle={{ flex: 1 }}
+                    contentContainerStyle={{
+                      paddingBottom: insets.bottom + 20
+                    }}
+                  />
+                )}
               </View>
             </View>
           </View>

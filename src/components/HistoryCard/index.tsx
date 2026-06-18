@@ -26,7 +26,7 @@ export interface HistoryProps {
   fee?: number;
   category?: 'money' | 'pix' | 'avaria' | 'vencimento' | 'consumo';
   userName: string;
-  status?: 'Pending' | 'Completed';
+  status?: 'pending' | 'completed' | 'approved';
   date: string;
   description?: string; // Ex: "Retirada por Avaria"
   items?: HistoryItem[]; // Para a versão geral
@@ -163,7 +163,7 @@ export function HistoryCard({
 
       {
         //ativar remover transação
-        canDeleteTransaction(data.date) && (
+        !isPix && canDeleteTransaction(data.date) && (
           <TouchableOpacity
             style={styles.removeButton}
             onPress={() => RemoveHistoryItem(data)}
@@ -186,7 +186,7 @@ export function HistoryCard({
             styles.image,
             {
               backgroundColor:
-                data.status === 'Pending' || data.type === 'withdrawal'
+                data.status === 'pending' || data.type === 'withdrawal'
                   ? colors.blue[100]
                   : colors.green[100]
             }
@@ -194,19 +194,19 @@ export function HistoryCard({
         >
           <GradientText
             color1={
-              data.status === 'Pending' || data.type === 'withdrawal'
+              data.status === 'pending' || data.type === 'withdrawal'
                 ? colors.blue[400]
                 : colors.green[400]
             }
             color2={
-              data.status === 'Pending' || data.type === 'withdrawal'
+              data.status === 'pending' || data.type === 'withdrawal'
                 ? colors.blue[500]
                 : colors.green[500]
             }
           >
             <MaterialIcons
               name={
-                !data.category
+                isPix
                   ? 'pix'
                   : data.type === 'sale'
                     ? 'shopping-bag'
@@ -218,10 +218,10 @@ export function HistoryCard({
         </View>
 
         <View style={styles.headerRow}>
-          <Text style={styles.idText}>
+          <Text style={styles.idText} numberOfLines={1}>
             {isPix
               ? //saber se o card ta na area pix ou histórico geral
-                `Transação #PX${data.id}`
+                `Transação#PX${data.id}`
               : `TX#${data.id} ${data.type === 'sale' ? 'Venda' : 'Retirada'} `}
           </Text>
           <Text style={styles.mainInfo} numberOfLines={1}>
@@ -231,7 +231,7 @@ export function HistoryCard({
           </Text>
 
           <View style={styles.status}>
-            {data.type && (
+            {!isPix && data.type && (
               <Text style={[styles.statusText]}>
                 {data.type === 'withdrawal' ? 'Motivo:' : 'Pago com'}
               </Text>
@@ -240,17 +240,18 @@ export function HistoryCard({
             <GradientText
               style={[styles.statusText, { fontFamily: fontFamily.bold }]}
               color1={
-                data.status === 'Pending' || data.type === 'withdrawal'
+                data.status === 'pending' || data.type === 'withdrawal'
                   ? colors.blue[400]
                   : colors.green[400]
               }
               color2={
-                data.status === 'Pending' || data.type === 'withdrawal'
+                data.status === 'pending' || data.type === 'withdrawal'
                   ? colors.blue[500]
                   : colors.green[500]
               }
             >
               {!data.category ? data.status : CATEGORY_LABELS[data.category]}
+              {isPix && (data.status === 'approved' ? 'Completed' : 'pending')}
             </GradientText>
           </View>
         </View>
@@ -275,6 +276,7 @@ export function HistoryCard({
         )}
       </TouchableOpacity>
       {/* COMPARTIMENTO EXPANSÍVEL (Geral) */}
+      {/* COMPARTIMENTO EXPANSÍVEL (Geral) */}
       <AnimatePresence>
         {isOpen && (
           <MotiView
@@ -284,50 +286,102 @@ export function HistoryCard({
             transition={{ type: 'timing', duration: 300 }}
             style={styles.expandedContent}
           >
-            <Text style={styles.itemsTitle}>Itens:</Text>
-            {data.items?.map((item, index) => (
-              <View key={index} style={styles.itemRow}>
-                {/* Bloco da Esquerda: Quantidade e Nome */}
-                <View style={styles.itemContainer}>
-                  <Text style={styles.itemQty}>{item.quantity} x</Text>
-                  {/* O numberOfLines garante que se o nome for gigante, ele vira "..." e não atropela o preço */}
-                  <Text style={styles.itemName} numberOfLines={1}>
-                    {item.name}
+            {isPix ? (
+              /* 🌐 SE FOR PIX: Quebra a string da descrição para preencher as linhas */
+              <>
+                <Text style={styles.itemsTitle}>Detalhes da Transação:</Text>
+
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>ID Gateway:</Text>
+                  <Text style={styles.itemName}>{data.id}</Text>
+                </View>
+
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Status Detail:</Text>
+                  <Text
+                    style={[
+                      styles.itemName,
+                      {
+                        color:
+                          data.status === 'approved' ? '#2ecc71' : '#f1c40f',
+                        fontFamily: fontFamily.medium
+                      }
+                    ]}
+                  >
+                    {/* Pega apenas a parte do "Status: ..." */}
+                    {data.description?.split(' | ')[1] || 'N/A'}
                   </Text>
                 </View>
 
-                {/* Bloco da Direita: Preço final do item */}
-                {item.price && data.type === 'sale' && (
-                  <Text style={styles.itemPrice}>
-                    {numberToCurrency(item.price * item.quantity)}
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Comprador:</Text>
+                  <Text style={styles.itemName} numberOfLines={1}>
+                    {/* Pega apenas a parte do "Comprador: ..." */}
+                    {data.description?.split(' | ')[2] || 'N/A'}
                   </Text>
-                )}
-              </View>
-            ))}
+                </View>
 
-            <View style={styles.footer}>
-              {data.value && data.type == 'sale' ? (
-                <>
-                  <Text style={styles.footerText}>
-                    Sub: {numberToCurrency(data.value - (data.fee || 0) || 0)}
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Referência:</Text>
+                  <Text style={styles.itemName}>
+                    {/* Pega apenas a parte do "Ref: ..." */}
+                    {data.description?.split(' | ')[0] || data.description}
                   </Text>
-                  <Text style={styles.footerText}>
-                    Taxa: {numberToCurrency(data.fee || 0)}
-                  </Text>
-                  <Text
-                    style={[styles.footerText, { fontFamily: fontFamily.bold }]}
-                  >
-                    Total: {numberToCurrency(data.value || 0)}
-                  </Text>
-                </>
-              ) : (
-                <Text
-                  style={[styles.footerText, { fontFamily: fontFamily.medium }]}
-                >
-                  Detalhes: {data.description || 'Sem observações'}
-                </Text>
-              )}
-            </View>
+                </View>
+              </>
+            ) : (
+              /* 🛒 SE NÃO FOR PIX: Mantém o teu fluxo original intacto */
+              <>
+                <Text style={styles.itemsTitle}>Itens:</Text>
+                {data.items?.map((item, index) => (
+                  <View key={index} style={styles.itemRow}>
+                    <View style={styles.itemContainer}>
+                      <Text style={styles.itemQty}>{item.quantity} x</Text>
+                      <Text style={styles.itemName} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                    </View>
+
+                    {item.price && data.type === 'sale' && (
+                      <Text style={styles.itemPrice}>
+                        {numberToCurrency(item.price * item.quantity)}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+
+                <View style={styles.footer}>
+                  {data.value && data.type == 'sale' ? (
+                    <>
+                      <Text style={styles.footerText}>
+                        Sub:{' '}
+                        {numberToCurrency(data.value - (data.fee || 0) || 0)}
+                      </Text>
+                      <Text style={styles.footerText}>
+                        Taxa: {numberToCurrency(data.fee || 0)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.footerText,
+                          { fontFamily: fontFamily.bold }
+                        ]}
+                      >
+                        Total: {numberToCurrency(data.value || 0)}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text
+                      style={[
+                        styles.footerText,
+                        { fontFamily: fontFamily.medium }
+                      ]}
+                    >
+                      Detalhes: {data.description || 'Sem observações'}
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
           </MotiView>
         )}
       </AnimatePresence>

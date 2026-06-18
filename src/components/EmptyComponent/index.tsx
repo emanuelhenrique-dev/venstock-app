@@ -10,14 +10,22 @@ interface props extends ViewProps {
   subtext: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   color: ColorValue;
+  size?: number;
 }
 
-export function EmptyComponent({ text, subtext, icon, color, ...rest }: props) {
+export function EmptyComponent({
+  text,
+  subtext,
+  icon,
+  color,
+  size,
+  ...rest
+}: props) {
   return (
     <View style={styles.container}>
       <MaterialCommunityIcons
         name={icon}
-        size={150}
+        size={size ?? 150}
         color={color}
         style={[
           {
