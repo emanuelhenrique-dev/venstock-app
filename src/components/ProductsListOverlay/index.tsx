@@ -35,6 +35,7 @@ export type ProductCardProps = {
   name: string;
   price: number;
   qtdEstoque: number;
+  minStock: number;
   qtdVendidos: number;
   imageUrl?: string;
   color?: string;
@@ -99,6 +100,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
         name: item.name,
         price: item.price,
         qtdEstoque: item.qtdEstoque,
+        minStock: item.minEstoque,
         qtdVendidos: item.qtdVendidos,
         imageUrl: item.imageUrl ?? undefined,
         color: item.color

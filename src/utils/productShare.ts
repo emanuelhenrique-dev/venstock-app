@@ -5,6 +5,7 @@ import { Alert, Share } from 'react-native';
 export type ShareProductProps = {
   name: string;
   qtdEstoque: number;
+  minStock: number;
 };
 
 // Monta a string limpa para o cliente
@@ -23,16 +24,25 @@ function generateClientText(categoryName: string, list: ShareProductProps[]) {
   return `${title}${body}${footer}`;
 }
 
-// Monta a string completa de controle (com quantidades)
+// 2. Lógica do Relatório Interno atualizada com as regras de minStock
 function generateInternalText(categoryName: string, list: ShareProductProps[]) {
   const dateStr = new Date().toLocaleDateString('pt-BR');
-  const title = `📦 CATEGORIA: ${categoryName}\n_Gerado em: ${dateStr}\n\n`;
+  const title = `📦 *CATEGORIA: ${categoryName}*\n_Gerado em: ${dateStr}_\n\n`;
+
   const body = list
-    .map(
-      (p) =>
-        `* ${p.name} - ${p.qtdEstoque} un ${p.qtdEstoque === 0 ? '⚠️' : ''}`
-    )
+    .map((p) => {
+      let aviso = '';
+
+      if (p.qtdEstoque === 0) {
+        aviso = ' ❌ *ZERADO!*';
+      } else if (p.qtdEstoque <= p.minStock) {
+        aviso = ` ⚠️ *ABAIXO DO MÍNIMO!* (Mín: ${p.minStock} un)`;
+      }
+
+      return `* ${p.name} - ${p.qtdEstoque} un${aviso}`;
+    })
     .join('\n');
+
   return `${title}${body}`;
 }
 
