@@ -7,10 +7,18 @@ export type ShareProductProps = {
   qtdEstoque: number;
 };
 
-// Monta a string limpa para o cliente (só nomes)
+// Monta a string limpa para o cliente
 function generateClientText(categoryName: string, list: ShareProductProps[]) {
   const title = `✨ Confira nossos produtos em ${categoryName}:\n\n`;
-  const body = list.map((p) => `• ${p.name}`).join('\n');
+
+  const body = list
+    .map((p) => {
+      // Se tiver 2 ou menos no estoque, adiciona o aviso de últimas unidades
+      const avisoEscassez = p.qtdEstoque <= 2 ? `(${p.qtdEstoque} un)` : '';
+      return `• ${p.name}${avisoEscassez}`;
+    })
+    .join('\n');
+
   const footer = `\n\nGostou de algo? Faça seu pedido! 😊`;
   return `${title}${body}${footer}`;
 }
@@ -19,7 +27,12 @@ function generateClientText(categoryName: string, list: ShareProductProps[]) {
 function generateInternalText(categoryName: string, list: ShareProductProps[]) {
   const dateStr = new Date().toLocaleDateString('pt-BR');
   const title = `📦 CATEGORIA: ${categoryName}\n_Gerado em: ${dateStr}\n\n`;
-  const body = list.map((p) => `* ${p.name} - ${p.qtdEstoque} un`).join('\n');
+  const body = list
+    .map(
+      (p) =>
+        `* ${p.name} - ${p.qtdEstoque} un ${p.qtdEstoque === 0 ? '⚠️' : ''}`
+    )
+    .join('\n');
   return `${title}${body}`;
 }
 
