@@ -25,6 +25,7 @@ import { ProductSkeleton } from '../ProductSkeleton';
 import { Separator } from '../Separator';
 import { useProductDatabase } from '@/database/useProductDatabase';
 import { EmptyComponent } from '../EmptyComponent';
+import { handleCategoryShare } from '@/utils/productShare';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -179,7 +180,14 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
             </View>
 
             <TouchableOpacity>
-              <MaterialIcons name="share" size={20} color={colors.black} />
+              <MaterialIcons
+                name="share"
+                size={20}
+                color={colors.black}
+                onPress={() =>
+                  handleCategoryShare(selectedCategory.name, products)
+                }
+              />
             </TouchableOpacity>
           </View>
           {canRenderList ? (
