@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5
+    gap: 4
   },
   status: {
     fontSize: 12,

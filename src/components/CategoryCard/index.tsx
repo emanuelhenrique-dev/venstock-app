@@ -17,6 +17,7 @@ export type CategoryCardProps = {
   qtdVendidos: number;
   imageUrl?: string | null;
   color?: string;
+  hasLowStock?: boolean;
 };
 
 interface Props extends TouchableOpacityProps {
@@ -45,8 +46,21 @@ export function CategoryCard({ data, showUniqueProducts, ...rest }: Props) {
               size={12}
             />
             <Text style={[styles.status, { color: colors.blue[400] }]}>
-              {!showUniqueProducts ? data.qtdEstoque : data.qtdProdutosUnicos}
+              {!showUniqueProducts
+                ? data.qtdEstoque
+                : data.qtdProdutosUnicos}{' '}
             </Text>
+
+            {data.hasLowStock && (
+              <MaterialIcons
+                name="warning"
+                color={colors.yellow[300]}
+                size={12}
+                style={{
+                  marginLeft: -5
+                }}
+              />
+            )}
           </View>
           <View style={styles.statusContainer}>
             <MaterialIcons

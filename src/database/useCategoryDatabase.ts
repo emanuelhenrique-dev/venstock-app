@@ -18,6 +18,7 @@ export type CategoryResponse = {
   qtdVendidos: number;
   imageUrl?: string | null;
   color: string;
+  hasLowStock: number;
   created_at: string;
 };
 
@@ -55,6 +56,10 @@ export function useCategoryDatabase() {
           c.name,
           COALESCE(SUM(p.quantity), 0) AS qtdEstoque,
           COALESCE(COUNT(p.id), 0) AS qtdProdutosUnicos,
+
+        -- 🌟 NOVA COLUNA: Se houver pelo menos um produto em baixa, retorna 1, senão 0
+          MAX(CASE WHEN p.id IS NOT NULL AND p.quantity <= p.min_stock THEN 1 ELSE 0 END) AS hasLowStock,
+
           COALESCE(
             (SELECT SUM(ti.quantity)
              FROM transaction_items ti

@@ -40,6 +40,8 @@ function ProductCardComponent({
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods | null>(null);
 
+  const isLowStock = data.qtdEstoque <= data.minStock;
+
   async function handleSwipeable() {
     swipeableRef.current?.close();
     await leftAction.onOpen();
@@ -93,8 +95,16 @@ function ProductCardComponent({
                   size={10}
                 />
                 <Text style={[styles.status, { color: colors.blue[400] }]}>
-                  {data.qtdEstoque} em estoque
+                  {data.qtdEstoque} em estoque{' '}
                 </Text>
+                {isLowStock && (
+                  <MaterialIcons
+                    name="warning"
+                    color={colors.yellow[300]}
+                    size={12}
+                    style={{ marginLeft: -5 }}
+                  />
+                )}
               </View>
               <View style={styles.statusContent}>
                 <MaterialIcons

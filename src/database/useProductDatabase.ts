@@ -266,6 +266,14 @@ export function useProductDatabase() {
     }
   }
 
+  //função simples para contar o total de produtos em baixa no app inteiro
+  async function getLowStockCount(): Promise<number> {
+    const query =
+      'SELECT COUNT(*) as total FROM products WHERE quantity <= min_stock';
+    const result = await database.getFirstAsync<{ total: number }>(query);
+    return result?.total ?? 0;
+  }
+
   return {
     getAll,
     getByCategory,
@@ -273,6 +281,7 @@ export function useProductDatabase() {
     create,
     searchAll,
     updateProduct,
-    removeProduct
+    removeProduct,
+    getLowStockCount
   };
 }

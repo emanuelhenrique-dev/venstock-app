@@ -22,6 +22,7 @@ export const colors = {
     100: '#ef564b66',
     500: '#EF574B'
   },
+  yellow: { 300: '#ffe100' },
   white: '#ffffff',
   black: '#000000'
 };

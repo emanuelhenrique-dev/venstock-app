@@ -120,7 +120,8 @@ export default function Index() {
         qtdVendidos: item.qtdVendidos,
         qtdProdutosUnicos: item.qtdProdutosUnicos,
         imageUrl: item.imageUrl ?? undefined,
-        color: item.color
+        color: item.color,
+        hasLowStock: item.hasLowStock === 1
       }));
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar as categorias');
@@ -194,17 +195,22 @@ export default function Index() {
     const salesSummaryPromise =
       transactionDatabase.getSalesSummaryByPeriod(currentPeriodKey);
 
-    const [categoryData, profileData, salesSummary] = await Promise.all([
-      categoryDataPromise,
-      profileDataPromise,
-      salesSummaryPromise
-    ]);
+    const lowStockCountPromise = productDatabase.getLowStockCount();
 
-    console.log(categoryData);
+    const [categoryData, profileData, salesSummary, lowStockCountValue] =
+      await Promise.all([
+        categoryDataPromise,
+        profileDataPromise,
+        salesSummaryPromise,
+        lowStockCountPromise
+      ]);
+
+    // console.log(categoryData);
 
     setUserName(profileData || 'Usuário desconhecido');
     setCategories(categoryData);
     setItemsSoldCount(String(salesSummary.totalItemsSold));
+    setLowStockCount(String(lowStockCountValue));
 
     // 🟢 Soma o estoque total de todas as unidades
     const sumStock = categoryData.reduce(
