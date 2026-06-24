@@ -12,6 +12,7 @@ import {
   type TransactionItem,
   useTransactionDatabase
 } from '@/database/useTransactionDatabase';
+import { localNotificationService } from '@/services/local-notifications.service';
 
 import { useCartStore } from '@/store/useCartStore';
 
@@ -137,6 +138,10 @@ export default function Cart() {
       setDescription('');
       setFee(0);
       clearCart();
+
+      // cancelar notificação
+      await localNotificationService.cancelCartReminder();
+
       await loadResources();
     } catch (error) {
       console.log('Erro ao finalizar pedido:', error);

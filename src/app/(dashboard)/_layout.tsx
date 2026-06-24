@@ -1,11 +1,30 @@
 import CustomTabBar from '@/components/CustomTabBar';
+
 import { colors } from '@/theme';
 import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// Serviços e Stores
+import { localNotificationService } from '@/services/local-notifications.service';
+
+// Hooks
+import { useCartReminder } from '@/hooks/useCartReminder';
+
 export default function DashboardLayout() {
+  //Pedido permissão para notificação
+  async function requestNotificationPermission() {
+    await localNotificationService.registerForPushNotifications();
+  }
+
+  // Ativa o monitoramento do carrinho em segundo plano de forma isolada!
+  useCartReminder();
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView
