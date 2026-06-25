@@ -15,6 +15,8 @@ interface Props extends ViewProps {
   button?: {
     onPress: () => void;
     icon: keyof typeof MaterialIcons.glyphMap;
+    color?: string;
+    badgeNumber?: string;
   };
 }
 
@@ -50,7 +52,7 @@ export function PageHeader({
               <MaterialIcons
                 name={button.icon}
                 size={24}
-                color={colors.gray[600]}
+                color={button.color || colors.gray[600]}
               />
             </TouchableOpacity>
           )}
@@ -85,9 +87,11 @@ export function PageHeader({
             <MaterialIcons
               name={button.icon}
               size={22}
-              color={colors.gray[600]}
+              color={button.color || colors.gray[600]}
             />
-            <View style={styles.badge}></View>
+            <View style={styles.badge}>
+              <Text style={styles.textBadge}>{button.badgeNumber || 0}</Text>
+            </View>
           </TouchableOpacity>
         )}
       </View>

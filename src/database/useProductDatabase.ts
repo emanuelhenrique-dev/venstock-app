@@ -266,6 +266,43 @@ export function useProductDatabase() {
     }
   }
 
+  // Função para buscar todos os produtos com estoque baixo com todas as informações necessárias
+  async function getLowStockProducts(): Promise<ProductResponse[]> {
+    try {
+      const query = `
+      SELECT
+        p.id, 
+        p.name,
+        p.price,
+        p.quantity AS qtdEstoque,
+        p.min_stock AS minEstoque,
+        COALESCE(
+          (SELECT SUM(ti.quantity)
+           FROM transaction_items ti
+           INNER JOIN transactions t ON t.id = ti.transaction_id
+           WHERE ti.product_id = p.id AND t.type = 'sale'),
+          0
+        ) AS qtdVendidos,
+        p.barcode AS codBar,       
+        p.color,
+        p.image_url AS imageUrl,
+        p.category_id,
+        c.name AS category_name,   
+        p.created_at
+      FROM products p
+      INNER JOIN categories c ON c.id = p.category_id
+      WHERE p.quantity <= p.min_stock
+      ORDER BY p.name ASC
+    `;
+
+      const result = await database.getAllAsync<ProductResponse>(query);
+      return result ?? [];
+    } catch (error) {
+      console.log('Erro ao buscar produtos com estoque baixo:', error);
+      throw error;
+    }
+  }
+
   //função simples para contar o total de produtos em baixa no app inteiro
   async function getLowStockCount(): Promise<number> {
     const query =
@@ -282,6 +319,7 @@ export function useProductDatabase() {
     searchAll,
     updateProduct,
     removeProduct,
+    getLowStockProducts,
     getLowStockCount
   };
 }

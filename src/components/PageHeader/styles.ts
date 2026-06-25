@@ -42,11 +42,17 @@ export const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    bottom: -3,
-    right: -3,
-    width: 13,
-    height: 13,
+    bottom: -5,
+    right: -5,
+    width: 18,
+    height: 18,
     backgroundColor: colors.red[500],
     borderRadius: 150
+  },
+  textBadge: {
+    fontSize: 12,
+    color: colors.white,
+    fontFamily: fontFamily.regular,
+    textAlign: 'center'
   }
 });

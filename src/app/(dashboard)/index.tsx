@@ -64,6 +64,8 @@ export default function Index() {
   const [searchResults, setSearchResults] = useState<SearchResults[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const [isLowStockFilterActive, setIsLowStockFilterActive] = useState(false);
+
   const [selectedCategory, setSelectedCategory] =
     useState<selectedCategoryProps | null>(null);
 
@@ -165,7 +167,7 @@ export default function Index() {
   }
 
   async function handleSearch() {
-    if (searchQuery.trim() === '') {
+    if (searchQuery.trim() === '' && !isLowStockFilterActive) {
       setSearchResults([]);
       setIsSearching(false);
       return;
@@ -173,8 +175,25 @@ export default function Index() {
 
     try {
       setIsSearching(true);
-      // Chama a função nova que criamos no seu database de produtos
-      const response = await productDatabase.searchAll(searchQuery);
+      let response = [];
+
+      if (isLowStockFilterActive) {
+        // 1. Busca os produtos com estoque baixo do banco
+        // (Se o seu banco aceitar um termo de busca opcional lá dentro, massa.
+        // Se não, buscamos todos os baixos e filtramos por texto aqui no JS)
+        const lowStockData = await productDatabase.getLowStockProducts();
+
+        if (searchQuery.trim() !== '') {
+          response = lowStockData.filter((product) =>
+            product.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        } else {
+          response = lowStockData;
+        }
+      } else {
+        // 2. Busca normal por texto/código de barras que você já tinha
+        response = await productDatabase.searchAll(searchQuery);
+      }
 
       // Agrupa os resultados por categoria
       const formattedResults = groupProductsByCategory(response);
@@ -241,7 +260,7 @@ export default function Index() {
   useEffect(() => {
     handleSearch();
     setSelectedCategory(null);
-  }, [searchQuery]);
+  }, [searchQuery, isLowStockFilterActive]);
 
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
@@ -279,10 +298,17 @@ export default function Index() {
         subtitle="Acompanhe suas vendas"
         gradient={[colors.blue[400], colors.blue[500]]}
         button={{
-          icon: 'delete',
+          icon: 'report',
           onPress: () => {
-            console.log('lixeira apertada');
-          }
+            setIsLowStockFilterActive((prev) => !prev);
+
+            // Se ativou o filtro, podemos pré-preencher o input ou disparar a busca direto
+            if (!isLowStockFilterActive) {
+              setSearchQuery(''); // Limpa a busca textual para focar só no estoque baixo
+            }
+          },
+          color: isLowStockFilterActive ? colors.yellow[500] : '',
+          badgeNumber: lowStockCount
         }}
       />
       <View style={{ marginTop: 24, flex: 1 }}>
@@ -369,8 +395,19 @@ export default function Index() {
             position: 'relative'
           }}
         >
-          {searchQuery.trim().length > 0 ? (
+          {searchQuery.trim().length > 0 || isLowStockFilterActive ? (
             <View style={{ flex: 1 }}>
+              {isLowStockFilterActive && (
+                <Text
+                  style={{
+                    padding: 10,
+                    color: colors.red[500],
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ⚠️ Mostrando apenas produtos com estoque baixo
+                </Text>
+              )}
               <SearchList
                 searchResults={searchResults}
                 isSearching={isSearching}
