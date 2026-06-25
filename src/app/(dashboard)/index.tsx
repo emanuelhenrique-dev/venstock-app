@@ -256,12 +256,13 @@ export default function Index() {
     }, [])
   );
 
-  //useEffect para rodar a busca toda vez que o usuário digitar ou escanear
-  useEffect(() => {
-    handleSearch();
-    setSelectedCategory(null);
-  }, [searchQuery, isLowStockFilterActive]);
-
+  // Roda quando os estados mudam OU quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      handleSearch();
+      setSelectedCategory(null);
+    }, [searchQuery, isLowStockFilterActive])
+  );
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
     if (!loading) {
