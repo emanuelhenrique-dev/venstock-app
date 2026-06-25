@@ -12,19 +12,15 @@ import { localNotificationService } from '@/services/local-notifications.service
 
 // Hooks
 import { useCartReminder } from '@/hooks/useCartReminder';
+import { useNotifications } from '@/hooks/useNotification';
 
 export default function DashboardLayout() {
-  //Pedido permissão para notificação
-  async function requestNotificationPermission() {
-    await localNotificationService.registerForPushNotifications();
-  }
+  // Ativa as permissões e escutadores de clique ao entrar no Dashboard
+  useNotifications();
 
   // Ativa o monitoramento do carrinho em segundo plano de forma isolada!
   useCartReminder();
 
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView

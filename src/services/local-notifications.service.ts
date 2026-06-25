@@ -7,6 +7,8 @@ const NOTIFICATION_IDS = {
   CART_REMINDER: 'cart-reminder'
 };
 
+const DEEP_LINK = 'venstock://';
+
 // Configura como as notificações se comportam com o app ABERTO
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -82,13 +84,14 @@ const scheduleCartReminder = async ({
       title: '🛒 Existem items no seu carrinho!',
       body: notificationBody,
       data: {
-        type: 'cart_reminder'
+        type: 'cart_reminder',
+        deepLink: `${DEEP_LINK}cart`
       },
       sound: true
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 10,
+      seconds: delayMinutes * 60,
       repeats: false
     }
   });
