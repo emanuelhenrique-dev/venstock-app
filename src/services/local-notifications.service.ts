@@ -4,7 +4,8 @@ import { Alert, Platform } from 'react-native';
 const DEFAULT_CHANNEL = 'default';
 
 const NOTIFICATION_IDS = {
-  CART_REMINDER: 'cart-reminder'
+  CART_REMINDER: 'cart-reminder',
+  LOW_STOCK: 'low-stock'
 };
 
 const DEEP_LINK = 'venstock://';
@@ -31,6 +32,7 @@ const setupNotificationChannel = async () => {
   }
 };
 
+// permissão
 const registerForPushNotifications = async () => {
   await setupNotificationChannel();
 
@@ -106,8 +108,90 @@ const cancelCartReminder = async () => {
   );
 };
 
+// interface para o Alerta de Estoque Baixo
+interface ScheduleLowStockInterface {
+  productName: string;
+  currentQuantity: number;
+}
+
+const scheduleLowStockAlert = async ({
+  productName,
+  currentQuantity
+}: ScheduleLowStockInterface) => {
+  const notification = await Notifications.scheduleNotificationAsync({
+    // Não passamos 'identifier' fixo aqui para que, se 2 produtos acabarem, apareçam 2 notificações separadas
+    content: {
+      title: '⚠️ Atenção: Estoque Baixo!',
+      body: `O produto "${productName}" atingiu o limite mínimo. Restam apenas ${currentQuantity} unidades.`,
+      data: {
+        type: 'low_stock_alert',
+        deepLink: `${DEEP_LINK}?triggerLowStock=true` // Passa o parâmetro na URL do Deep Link
+      },
+      sound: true
+    },
+    trigger: null // Dispara imediatamente
+  });
+
+  return notification;
+};
+
+interface ScheduleLowStockReminderInterface {
+  totalItems: number;
+  delayHours?: number;
+}
+
+// 🌟 Função unificada para gerenciar o estado do lembrete periódico
+const updateLowStockReminder = async ({
+  totalItems,
+  delayHours = 24
+}: ScheduleLowStockReminderInterface) => {
+  try {
+    // Se não houver mais nenhum item com estoque baixo, cancela o lembrete automaticamente
+    if (totalItems <= 0) {
+      await cancelLowStockReminder();
+      return;
+    }
+
+    // Se houver itens, reagenda/atualiza o lembrete periódico
+    const notificationBody =
+      totalItems === 1
+        ? `1 produto está acabando! Reponha o estoque para não perder vendas.`
+        : `${totalItems} produtos estão acabando! Reponha o estoque para não perder vendas.`;
+
+    await Notifications.scheduleNotificationAsync({
+      identifier: NOTIFICATION_IDS.LOW_STOCK,
+      content: {
+        title: '📦 Lembrete de Reposição',
+        body: notificationBody,
+        data: {
+          type: 'low_stock_reminder',
+          deepLink: `${DEEP_LINK}?triggerLowStock=true`
+        },
+        sound: true
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: delayHours * 3600, // Transforma horas em segundos
+        repeats: true // Repete no intervalo definido
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar o lembrete de estoque baixo:', error);
+  }
+};
+
+// Cancela o lembrete (quando ele esvaziar ou finalizar o carrinho)
+const cancelLowStockReminder = async () => {
+  await Notifications.cancelScheduledNotificationAsync(
+    NOTIFICATION_IDS.LOW_STOCK
+  );
+};
+
 export const localNotificationService = {
   registerForPushNotifications,
   scheduleCartReminder,
-  cancelCartReminder
+  cancelCartReminder,
+  scheduleLowStockAlert,
+  updateLowStockReminder,
+  cancelLowStockReminder
 };

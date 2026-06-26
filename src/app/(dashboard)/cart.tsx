@@ -13,6 +13,7 @@ import {
   useTransactionDatabase
 } from '@/database/useTransactionDatabase';
 import { localNotificationService } from '@/services/local-notifications.service';
+import { stockAlertsService } from '@/services/stock-alerts.service';
 
 import { useCartStore } from '@/store/useCartStore';
 
@@ -126,6 +127,12 @@ export default function Cart() {
         total: total,
         items: databaseItems
       });
+
+      const productsAfterTransaction = await productDatabase.getAll();
+      stockAlertsService.checkAndTriggerStockAlerts(
+        cartWithDetails,
+        productsAfterTransaction
+      );
 
       // Se chegou aqui, o estoque está 100% verificado e seguro para prosseguir!
       if (transactionType === 'sale') {

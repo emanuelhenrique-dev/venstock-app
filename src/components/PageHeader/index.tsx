@@ -89,9 +89,11 @@ export function PageHeader({
               size={22}
               color={button.color || colors.gray[600]}
             />
-            <View style={styles.badge}>
-              <Text style={styles.textBadge}>{button.badgeNumber || 0}</Text>
-            </View>
+            {(Number(button.badgeNumber) ?? 0) > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.textBadge}>{button.badgeNumber}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         )}
       </View>

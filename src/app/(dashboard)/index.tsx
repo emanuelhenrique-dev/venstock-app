@@ -22,7 +22,7 @@ import {
 } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import {
   CategoryResponse,
@@ -38,6 +38,7 @@ import {
   useProductDatabase
 } from '@/database/useProductDatabase';
 import { SearchList, SearchResults } from '@/components/SearchList';
+import { localNotificationService } from '@/services/local-notifications.service';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -51,6 +52,9 @@ export default function Index() {
   const [userName, setUserName] = useState('');
   const [totalStock, setTotalStock] = useState('0');
   const [lowStockCount, setLowStockCount] = useState('0');
+
+  // Captura os parâmetros vindos da URL/Deep Link
+  const params = useLocalSearchParams<{ triggerLowStock?: string }>();
 
   //Estado para controlar a mostra as vendas de um período especifico
   const [periodIndex, setPeriodIndex] = useState(0);
@@ -248,6 +252,7 @@ export default function Index() {
     setLoading(false);
   }
 
+  // busca dados
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -263,12 +268,31 @@ export default function Index() {
       setSelectedCategory(null);
     }, [searchQuery, isLowStockFilterActive])
   );
+
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
     if (!loading) {
       loadPeriodSales(periodIndex);
     }
   }, [periodIndex]);
+
+  // Sempre que a contagem de estoque baixo mudar na tela principal atualizar a notificação
+  useEffect(() => {
+    localNotificationService.updateLowStockReminder({
+      totalItems: Number(lowStockCount)
+    });
+  }, [lowStockCount]);
+
+  // Monitora se o app foi aberto pela notificação de estoque baixo
+  useEffect(() => {
+    if (params.triggerLowStock === 'true') {
+      setIsLowStockFilterActive(true); // Ativa o filtro do estoque baixo automaticamente
+      setSearchQuery(''); // Limpa qualquer busca de texto anterior
+    }
+
+    // SEGREDO: Limpa o parâmetro da URL logo após usá-lo!
+    router.setParams({ triggerLowStock: '' });
+  }, [params.triggerLowStock]);
 
   if (loading) {
     return (
