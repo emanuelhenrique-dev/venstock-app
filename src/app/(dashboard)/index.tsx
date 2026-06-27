@@ -57,7 +57,7 @@ export default function Index() {
   const params = useLocalSearchParams<{ triggerLowStock?: string }>();
 
   //Estado para controlar a mostra as vendas de um período especifico
-  const [periodIndex, setPeriodIndex] = useState(0);
+  const [periodIndex, setPeriodIndex] = useState(1);
 
   //Estado para controlar se mostra "Estoque Total" ou "Produtos Únicos"
   const [showUniqueProducts, setShowUniqueProducts] = useState(false);
@@ -214,25 +214,20 @@ export default function Index() {
     const categoryDataPromise = fetchCategories();
     const profileDataPromise = loadProfile();
 
-    const currentPeriodKey = PERIODS_CONFIG[periodIndex].key;
-    const salesSummaryPromise =
-      transactionDatabase.getSalesSummaryByPeriod(currentPeriodKey);
-
     const lowStockCountPromise = productDatabase.getLowStockCount();
 
-    const [categoryData, profileData, salesSummary, lowStockCountValue] =
-      await Promise.all([
-        categoryDataPromise,
-        profileDataPromise,
-        salesSummaryPromise,
-        lowStockCountPromise
-      ]);
+    const [categoryData, profileData, lowStockCountValue] = await Promise.all([
+      categoryDataPromise,
+      profileDataPromise,
+
+      lowStockCountPromise
+    ]);
 
     // console.log(categoryData);
 
     setUserName(profileData || 'Usuário desconhecido');
     setCategories(categoryData);
-    setItemsSoldCount(String(salesSummary.totalItemsSold));
+
     setLowStockCount(String(lowStockCountValue));
 
     // 🟢 Soma o estoque total de todas as unidades
@@ -259,7 +254,6 @@ export default function Index() {
       setSelectedCategory(null);
 
       setPeriodIndex(1);
-      loadPeriodSales(periodIndex);
     }, [])
   );
 
@@ -273,9 +267,7 @@ export default function Index() {
 
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
-    if (!loading) {
-      loadPeriodSales(periodIndex);
-    }
+    loadPeriodSales(periodIndex);
   }, [periodIndex]);
 
   // Sempre que a contagem de estoque baixo mudar na tela principal atualizar a notificação

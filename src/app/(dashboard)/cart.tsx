@@ -73,10 +73,6 @@ export default function Cart() {
       .filter((item): item is CartItemDetailed => item !== null); // Remove itens nulos da lista (caso algum produto do carrinho tenha sido deletado do banco) e garante a tipagem correta para o TypeScript
   }, [items, dbProducts]);
 
-  console.log('ITENS NA STORE:', items);
-  console.log('PRODUTOS DO BANCO:', dbProducts.length);
-  console.log('CARRINHO DETALHADO:', cartWithDetails);
-
   // Preço total dos produtos
   const total = useMemo(() => {
     return cartWithDetails.reduce(

@@ -132,8 +132,8 @@ export function HistoryCard({
                 transaction.items.forEach((item: CartItem, index: number) => {
                   addItem({
                     id: String(Date.now() + index), // Garante um ID único para o item no carrinho
-                    productId: item.id, // Mantém o vínculo com o produto correto
-                    quantity: item.quantity // Devolve a quantidade exata vendida
+                    productId: item.id,
+                    quantity: item.quantity
                   });
                 });
 
