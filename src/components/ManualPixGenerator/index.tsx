@@ -5,7 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  StyleSheet
+  StyleSheet,
+  ActivityIndicator
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { colors } from '@/theme';
 import { styles } from './styles';
+import { Loading } from '../Loading';
 
 const ASYNC_STORAGE_KEY = '@meu_app:manual_pix_code';
 
@@ -20,6 +22,7 @@ export default function ManualPixGenerator() {
   const [inputPix, setInputPix] = useState('');
   const [pixSalvo, setPixSalvo] = useState('');
   const [showInput, setShowInput] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadStoredPix() {
@@ -32,6 +35,8 @@ export default function ManualPixGenerator() {
         }
       } catch (error) {
         console.error('Error loading Pix:', error);
+      } finally {
+        setIsLoading(false); // 🌟 Terminou de ler o storage, libera a tela
       }
     }
     loadStoredPix();
@@ -65,9 +70,22 @@ export default function ManualPixGenerator() {
     );
   };
 
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' }
+        ]}
+      >
+        <Loading width={300} height={300} text="Buscando codigo salvo" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* 📝 SEÇÃO DO INPUT */}
+      {/*  SEÇÃO DO INPUT */}
       {showInput && (
         <>
           <Text style={styles.inputTitle}>Configurar Código Pix ou Link:</Text>
