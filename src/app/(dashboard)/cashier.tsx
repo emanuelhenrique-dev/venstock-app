@@ -13,7 +13,6 @@ import {
   useSafeAreaInsets
 } from 'react-native-safe-area-context';
 
-import QRCode from 'react-native-qrcode-svg';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { List } from '@/components/List';

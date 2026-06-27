@@ -257,7 +257,9 @@ export default function Index() {
     useCallback(() => {
       fetchData();
       setSelectedCategory(null);
+
       setPeriodIndex(1);
+      loadPeriodSales(periodIndex);
     }, [])
   );
 

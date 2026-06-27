@@ -111,7 +111,7 @@ export default function ManualPixGenerator() {
             <TouchableOpacity
               onPress={async () => {
                 await Clipboard.setStringAsync(pixSalvo);
-                Alert.alert('Copiado!', 'Código Pix cobrado.');
+                Alert.alert('Copiado!', 'Código Pix copiado.');
               }}
             >
               <MaterialIcons
