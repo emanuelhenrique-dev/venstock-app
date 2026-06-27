@@ -10,6 +10,7 @@ import { GradientText } from '../GradientText';
 import { formatProjectDate } from '@/utils/formatterData';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import { useTransactionDatabase } from '@/database/useTransactionDatabase';
+import { CartItem, useCartStore } from '@/store/useCartStore';
 
 interface HistoryItem {
   id: string;
@@ -49,6 +50,8 @@ export function HistoryCard({
 }: props) {
   const transactionDatabase = useTransactionDatabase();
 
+  const { addItem, clearCart } = useCartStore();
+
   const CATEGORY_LABELS: Record<string, string> = {
     money: 'Dinheiro',
     pix: 'Pix',
@@ -85,6 +88,7 @@ export function HistoryCard({
   };
 
   async function RemoveHistoryItem(transaction: any) {
+    console.log(transaction.items);
     // Recebe o objeto completo (data)
     const typeLabel = transaction.type === 'sale' ? 'Venda' : 'Retirada';
 
@@ -94,12 +98,12 @@ export function HistoryCard({
       if (transaction.type === 'sale') {
         Alert.alert(
           `Remover ${typeLabel}`,
-          `Deseja estornar esta venda? Os itens voltarão para o estoque automaticamente.`,
+          `O que deseja fazer com os itens desta venda ao removê-la? Ambos os casos devolverão os produtos ao estoque.`,
           [
-            { text: 'Não', style: 'cancel' },
+            { text: 'Cancelar', style: 'cancel' },
             {
-              text: 'Sim, remover',
-              style: 'destructive',
+              text: 'Apenas Devolver',
+              style: 'default',
               onPress: async () => {
                 // Executa passando transactionId, items e true (para restaurar estoque)
                 await transactionDatabase.deleteTransaction(
@@ -107,6 +111,32 @@ export function HistoryCard({
                   transaction.items,
                   true
                 );
+                onDeleteSuccess();
+              }
+            },
+            {
+              text: 'Voltar os items para o carrinho',
+              style: 'destructive', // Destaca a ação principal escolhida
+              onPress: async () => {
+                // 1. Deleta do banco e joga as quantidades de volta pro estoque
+                await transactionDatabase.deleteTransaction(
+                  transaction.id,
+                  transaction.items,
+                  true
+                );
+
+                //limpar o carrinho
+                clearCart();
+
+                // Mapeia e adiciona os itens no formato que o seu CartItem exige
+                transaction.items.forEach((item: CartItem, index: number) => {
+                  addItem({
+                    id: String(Date.now() + index), // Garante um ID único para o item no carrinho
+                    productId: item.id, // Mantém o vínculo com o produto correto
+                    quantity: item.quantity // Devolve a quantidade exata vendida
+                  });
+                });
+
                 onDeleteSuccess();
               }
             }
