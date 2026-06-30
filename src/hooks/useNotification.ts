@@ -5,26 +5,40 @@ import { localNotificationService } from '@/services/local-notifications.service
 import { useAuth } from './useAuth';
 
 export const useNotifications = () => {
-  const { notificationsEnabled } = useAuth();
+  const { notificationsEnabled, toggleNotifications } = useAuth();
+
   useEffect(() => {
-    if (!notificationsEnabled) {
-      localNotificationService.cancelAllNotifications();
-      return;
-    }
+    async function setupNotifications() {
+      if (!notificationsEnabled) {
+        await localNotificationService.cancelAllNotifications();
+        return;
+      }
 
-    // 1. Inicializa as permissões e canais de forma limpa
-    localNotificationService.registerForPushNotifications();
+      // 1. Executa a permissão e guarda a resposta (true/false) que seu service retorna
+      const hasPermission =
+        await localNotificationService.registerForPushNotifications();
 
-    // 2. Trata o clique caso o app tenha sido aberto do zero através da notificação (App "frio")
-    const lastResponse = Notifications.getLastNotificationResponse();
+      // Se o usuário clicou em RECUSAR na caixinha nativa do celular, Sincroniza o contexto e desliga o switch do perfil na hora!
+      if (!hasPermission) {
+        await toggleNotifications(false);
+        return;
+      }
 
-    if (lastResponse) {
-      const deepLink = lastResponse.notification.request.content.data?.deepLink;
+      // 2. Trata o clique caso o app tenha sido aberto do zero através da notificação (App "frio")
+      const lastResponse = Notifications.getLastNotificationResponse();
 
-      if (deepLink && typeof deepLink === 'string') {
-        Linking.openURL(deepLink);
+      if (lastResponse) {
+        const deepLink =
+          lastResponse.notification.request.content.data?.deepLink;
+
+        if (deepLink && typeof deepLink === 'string') {
+          Linking.openURL(deepLink);
+        }
       }
     }
+
+    // Executa a inicialização de forma limpa
+    setupNotifications();
 
     // 3. Monitora o clique na notificação enquanto o app está aberto ou em segundo plano
     const subscription = Notifications.addNotificationResponseReceivedListener(
@@ -38,7 +52,7 @@ export const useNotifications = () => {
     );
 
     return () => subscription.remove();
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled]); // Monitora alterações do estado do switch
 
   return {};
 };
