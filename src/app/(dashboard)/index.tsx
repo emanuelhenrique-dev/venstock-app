@@ -50,7 +50,7 @@ export type selectedCategoryProps = {
 };
 
 export default function Index() {
-  const { user } = useAuth();
+  const { user, notificationsEnabled } = useAuth();
   const [totalStock, setTotalStock] = useState('0');
   const [lowStockCount, setLowStockCount] = useState('0');
 
@@ -270,10 +270,13 @@ export default function Index() {
 
   // Sempre que a contagem de estoque baixo mudar na tela principal atualizar a notificação
   useEffect(() => {
-    localNotificationService.updateLowStockReminder({
-      totalItems: Number(lowStockCount)
-    });
-  }, [lowStockCount]);
+    // Só atualiza a notificação se as notificações estiverem ativas no perfil!
+    if (notificationsEnabled) {
+      localNotificationService.updateLowStockReminder({
+        totalItems: Number(lowStockCount)
+      });
+    }
+  }, [lowStockCount, notificationsEnabled]);
 
   // Monitora se o app foi aberto pela notificação de estoque baixo
   useEffect(() => {

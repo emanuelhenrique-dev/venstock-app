@@ -23,10 +23,9 @@ type profile = {
 };
 
 export default function User() {
-  const [notifications, setNotifications] = useState(true);
-
   const { clearCart } = useCartStore();
-  const { user, loggedOut } = useAuth();
+  const { user, loggedOut, notificationsEnabled, toggleNotifications } =
+    useAuth();
 
   const insets = useSafeAreaInsets();
 
@@ -147,11 +146,11 @@ export default function User() {
 
           <OptionCard
             title="Permitir Notificações"
-            subtitle="Notificar quando os produtos estiverem em baixa."
+            subtitle="Ex: Notificar quando os produtos estiverem em baixa."
             icon="notifications-none"
             isSwitch
-            switchValue={notifications}
-            onSwitchChange={setNotifications}
+            switchValue={notificationsEnabled}
+            onSwitchChange={toggleNotifications}
           />
 
           <OptionCard

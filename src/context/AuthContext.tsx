@@ -8,6 +8,8 @@ import React, {
 } from 'react';
 import { userStorage } from '@/database/userStorage';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { localNotificationService } from '@/services/local-notifications.service';
 
 type UserData = {
   name: string;
@@ -19,6 +21,7 @@ type AuthState = {
   user: UserData | null;
   isLoggedIn: boolean;
   loading: boolean;
+  notificationsEnabled: boolean;
   updateUser: (
     name: string,
     image: string | null,
@@ -30,6 +33,7 @@ type AuthState = {
     color: string
   ) => Promise<void>;
   loggedOut: () => Promise<void>;
+  toggleNotifications: (enabled: boolean) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthState>({} as AuthState);
@@ -39,6 +43,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
   const router = useRouter();
   const { saveUserData, getUserData, clearUserData } = userStorage();
 
@@ -46,6 +52,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     async function loadStoredData() {
       try {
         const storedUser = await getUserData();
+
+        //Carrega a preferência de notificação salva (padrão 'true' se não existir)
+        const storedNotifications = await AsyncStorage.getItem(
+          '@venstock:notifications'
+        );
+        setNotificationsEnabled(storedNotifications !== 'false');
+
         if (storedUser && storedUser.name) {
           setUser({
             name: storedUser.name ?? 'Usuário desconhecido',
@@ -70,6 +83,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser({ name, image, color });
   }
 
+  async function toggleNotifications(enabled: boolean) {
+    setNotificationsEnabled(enabled);
+    await AsyncStorage.setItem('@venstock:notifications', String(enabled));
+
+    console.log(`Notificações ${enabled ? 'ativadas' : 'desativadas'}`);
+    // Se o usuário desativou, você já pode cancelar os agendamentos imediatamente!
+    if (!enabled) {
+      await localNotificationService.cancelAllNotifications();
+    }
+  }
+
   async function loggedIn(name: string, image: string | null, color: string) {
     await saveUserData(name, image, color);
     setUser({ name, image, color });
@@ -88,7 +112,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoggedIn, loading, updateUser, loggedIn, loggedOut }}
+      value={{
+        user,
+        isLoggedIn,
+        loading,
+        notificationsEnabled,
+        toggleNotifications,
+        updateUser,
+        loggedIn,
+        loggedOut
+      }}
     >
       {children}
     </AuthContext.Provider>

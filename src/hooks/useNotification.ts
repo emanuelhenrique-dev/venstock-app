@@ -2,14 +2,20 @@ import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { localNotificationService } from '@/services/local-notifications.service';
+import { useAuth } from './useAuth';
 
 export const useNotifications = () => {
+  const { notificationsEnabled } = useAuth();
   useEffect(() => {
+    if (!notificationsEnabled) {
+      localNotificationService.cancelAllNotifications();
+      return;
+    }
+
     // 1. Inicializa as permissões e canais de forma limpa
     localNotificationService.registerForPushNotifications();
 
     // 2. Trata o clique caso o app tenha sido aberto do zero através da notificação (App "frio")
-
     const lastResponse = Notifications.getLastNotificationResponse();
 
     if (lastResponse) {
@@ -32,7 +38,7 @@ export const useNotifications = () => {
     );
 
     return () => subscription.remove();
-  }, []);
+  }, [notificationsEnabled]);
 
   return {};
 };

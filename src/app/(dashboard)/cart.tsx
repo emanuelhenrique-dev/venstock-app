@@ -12,6 +12,7 @@ import {
   type TransactionItem,
   useTransactionDatabase
 } from '@/database/useTransactionDatabase';
+import { useAuth } from '@/hooks/useAuth';
 import { localNotificationService } from '@/services/local-notifications.service';
 import { stockAlertsService } from '@/services/stock-alerts.service';
 
@@ -49,6 +50,8 @@ export default function Cart() {
   const transactionDatabase = useTransactionDatabase();
   const [dbProducts, setDbProducts] = useState<ProductCardProps[]>([]); // Novo estado
 
+  const { notificationsEnabled } = useAuth();
+
   // Lógica para decidir qual método e qual função de alteração enviar
   const currentMethod =
     transactionType === 'sale' ? saleMethod : withdrawalMethod;
@@ -79,13 +82,6 @@ export default function Cart() {
       (acc, item) => acc + item.product.price * item.quantity,
       0
     );
-  }, [cartWithDetails]);
-
-  // Descobre a lista de IDs de produtos que estão com estoque zerado no carrinho
-  const outOfStockProductIds = useMemo(() => {
-    return cartWithDetails
-      .filter((item) => item.product.qtdEstoque <= 0)
-      .map((item) => String(item.product.id));
   }, [cartWithDetails]);
 
   async function handleFinishOrder() {
@@ -129,10 +125,14 @@ export default function Cart() {
       });
 
       const productsAfterTransaction = await productDatabase.getAll();
-      stockAlertsService.checkAndTriggerStockAlerts(
-        cartWithDetails,
-        productsAfterTransaction
-      );
+
+      // SÓ DISPARA ALERTA DE ESTOQUE BAIXO SE AS NOTIFICAÇÕES ESTIVEREM ATIVAS!
+      if (notificationsEnabled) {
+        stockAlertsService.checkAndTriggerStockAlerts(
+          cartWithDetails,
+          productsAfterTransaction
+        );
+      }
 
       // Se chegou aqui, o estoque está 100% verificado e seguro para prosseguir!
       if (transactionType === 'sale') {
@@ -147,8 +147,9 @@ export default function Cart() {
       clearCart();
 
       // cancelar notificação
-      await localNotificationService.cancelCartReminder();
-
+      if (notificationsEnabled) {
+        await localNotificationService.cancelCartReminder();
+      }
       await loadResources();
     } catch (error) {
       console.log('Erro ao finalizar pedido:', error);

@@ -3,10 +3,13 @@ import { AppState, AppStateStatus } from 'react-native';
 import { useCartStore } from '@/store/useCartStore';
 import { useProductDatabase } from '@/database/useProductDatabase';
 import { localNotificationService } from '@/services/local-notifications.service';
+import { useAuth } from './useAuth';
 
 export function useCartReminder() {
   const appState = useRef(AppState.currentState);
   const productDatabase = useProductDatabase();
+
+  const { notificationsEnabled } = useAuth();
 
   //funciona como uma "caixa" onde guardamos um valor que não pode ser perdido quando o ecrã muda de estado (re-renderiza).
   const handleAppStateChangeRef =
@@ -16,6 +19,12 @@ export function useCartReminder() {
   handleAppStateChangeRef.current = async (nextAppState: AppStateStatus) => {
     // 🚪 USUÁRIO MINIMIZOU O APP
     if (appState.current.match(/active/) && nextAppState === 'background') {
+      // SE NOTIFICAÇÕES ESTIVEREM DESATIVADAS, Sai da função imediatamente, sem buscar banco de dados e sem agendar nada!
+      if (!notificationsEnabled) {
+        appState.current = nextAppState; // Atualiza o estado da ref antes de sair
+        return;
+      }
+
       const cartItems = useCartStore.getState().items;
 
       if (cartItems.length > 0) {
@@ -47,8 +56,11 @@ export function useCartReminder() {
       appState.current.match(/inactive|background/) &&
       nextAppState === 'active'
     ) {
-      await localNotificationService.cancelCartReminder();
-      console.log('❌ Lembrete antigo cancelado porque o usuário voltou.');
+      // 🛡️Caso ele tenha desativado, também não precisa chamar o cancelamento à toa
+      if (notificationsEnabled) {
+        await localNotificationService.cancelCartReminder();
+        console.log('❌ Lembrete antigo cancelado porque o usuário voltou.');
+      }
     }
 
     appState.current = nextAppState;
@@ -64,5 +76,5 @@ export function useCartReminder() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [notificationsEnabled]);
 }
