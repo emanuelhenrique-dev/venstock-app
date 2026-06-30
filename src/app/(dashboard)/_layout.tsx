@@ -1,7 +1,7 @@
 import CustomTabBar from '@/components/CustomTabBar';
 
 import { colors } from '@/theme';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { useEffect } from 'react';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,13 +13,25 @@ import { localNotificationService } from '@/services/local-notifications.service
 // Hooks
 import { useCartReminder } from '@/hooks/useCartReminder';
 import { useNotifications } from '@/hooks/useNotification';
+import { useAuth } from '@/hooks/useAuth';
+import { Loading } from '@/components/Loading';
 
 export default function DashboardLayout() {
+  const { isLoggedIn, loading } = useAuth();
+
   // Ativa as permissões e escutadores de clique ao entrar no Dashboard
   useNotifications();
 
   // Ativa o monitoramento do carrinho em segundo plano de forma isolada!
   useCartReminder();
+
+  if (loading) {
+    return <Loading height={300} width={300} />;
+  }
+
+  if (!isLoggedIn) {
+    return <Redirect href="/logIn" />;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

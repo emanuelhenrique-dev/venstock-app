@@ -1,19 +1,20 @@
 import { CustomImage } from '@/components/CustomImage';
 import { OptionCard } from '@/components/OptionCard';
-import { PageHeader } from '@/components/PageHeader';
 
-import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StatusBar, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Alert, StatusBar, Text, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets
 } from 'react-native-safe-area-context';
-import Index from '..';
+
 import { ScrollView } from 'react-native-gesture-handler';
 import { router, useFocusEffect } from 'expo-router';
-import { Loading } from '@/components/Loading';
+
+import { useCartStore } from '@/store/useCartStore';
+import { localNotificationService } from '@/services/local-notifications.service';
+import { useAuth } from '@/hooks/useAuth';
 
 type profile = {
   name: string;
@@ -22,33 +23,16 @@ type profile = {
 };
 
 export default function User() {
-  const [profile, setProfile] = useState<profile>({
-    name: '',
-    image: null,
-    color: ''
-  });
-  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState(true);
 
-  const { getUserData, clearUserData } = userStorage();
+  const { clearCart } = useCartStore();
+  const { user, loggedOut } = useAuth();
 
   const insets = useSafeAreaInsets();
 
-  async function loadProfile() {
-    try {
-      const data = await getUserData();
-
-      setProfile({
-        name: data?.name || 'Usuário desconhecido',
-        image: data?.image || null,
-        color: data?.color || colors.green[500]
-      });
-    } catch (error) {
-      console.log('Erro ao carregar perfil', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const profileName = user?.name || 'Usuário desconhecido';
+  const profileImage = user?.image || null;
+  const profileColor = user?.color || colors.green[500];
 
   async function handleLogout() {
     Alert.alert('Sair', 'Deseja realmente sair da sua conta?', [
@@ -58,36 +42,18 @@ export default function User() {
         style: 'destructive',
         onPress: async () => {
           try {
-            setLoading(true);
-            // 1. Limpa o storage
-            await clearUserData();
+            // Limpa o carrinho de compras global
+            clearCart();
+            //  Cancela todas notificações
+            await localNotificationService.cancelAllNotifications();
 
-            // 2. Tente usar o navigate com um pequeno delay maior
-            // Isso força o roteador a reavaliar a árvore de arquivos
-            setTimeout(() => {
-              // Força a ida para a raiz absoluta
-              if (router.canGoBack()) {
-                router.dismissAll();
-              }
-              router.replace('/');
-            }, 200);
+            await loggedOut();
           } catch (error) {
-            setLoading(false);
             Alert.alert('Erro', 'Não foi possível sair.');
           }
         }
       }
     ]);
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile();
-    }, [])
-  );
-
-  if (loading) {
-    return <Loading height={300} width={300} />;
   }
 
   return (
@@ -103,9 +69,9 @@ export default function User() {
         }}
       >
         <CustomImage
-          image={profile.image}
+          image={profileImage}
           size={130}
-          color={profile.color}
+          color={profileColor}
           style={{ zIndex: 1 }}
         />
         <View
@@ -123,7 +89,7 @@ export default function User() {
             numberOfLines={1}
             style={{ fontSize: 24, fontFamily: fontFamily.semiBold }}
           >
-            {profile.name}
+            {profileName}
           </Text>
           <Text
             style={{

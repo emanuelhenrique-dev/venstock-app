@@ -39,6 +39,7 @@ import {
 } from '@/database/useProductDatabase';
 import { SearchList, SearchResults } from '@/components/SearchList';
 import { localNotificationService } from '@/services/local-notifications.service';
+import { useAuth } from '@/hooks/useAuth';
 
 // Defina a estrutura da categoria
 export type selectedCategoryProps = {
@@ -49,7 +50,7 @@ export type selectedCategoryProps = {
 };
 
 export default function Index() {
-  const [userName, setUserName] = useState('');
+  const { user } = useAuth();
   const [totalStock, setTotalStock] = useState('0');
   const [lowStockCount, setLowStockCount] = useState('0');
 
@@ -212,20 +213,17 @@ export default function Index() {
 
   async function fetchData() {
     const categoryDataPromise = fetchCategories();
-    const profileDataPromise = loadProfile();
 
     const lowStockCountPromise = productDatabase.getLowStockCount();
 
-    const [categoryData, profileData, lowStockCountValue] = await Promise.all([
+    const [categoryData, lowStockCountValue] = await Promise.all([
       categoryDataPromise,
-      profileDataPromise,
 
       lowStockCountPromise
     ]);
 
     // console.log(categoryData);
 
-    setUserName(profileData || 'Usuário desconhecido');
     setCategories(categoryData);
 
     setLowStockCount(String(lowStockCountValue));
@@ -313,7 +311,7 @@ export default function Index() {
       <StatusBar barStyle="dark-content" />
       <PageHeader
         title1="Olá"
-        title2={userName || 'Lojista'}
+        title2={user?.name || 'Lojista'}
         subtitle="Acompanhe suas vendas"
         gradient={[colors.blue[400], colors.blue[500]]}
         button={{

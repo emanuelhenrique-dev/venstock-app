@@ -187,11 +187,22 @@ const cancelLowStockReminder = async () => {
   );
 };
 
+const cancelAllNotifications = async () => {
+  try {
+    // Cancela absolutamente todos os agendamentos futuros do app
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    console.log('Todas as notificações agendadas foram canceladas.');
+  } catch (error) {
+    console.log('Erro ao cancelar notificações:', error);
+  }
+};
+
 export const localNotificationService = {
   registerForPushNotifications,
   scheduleCartReminder,
   cancelCartReminder,
   scheduleLowStockAlert,
   updateLowStockReminder,
-  cancelLowStockReminder
+  cancelLowStockReminder,
+  cancelAllNotifications
 };

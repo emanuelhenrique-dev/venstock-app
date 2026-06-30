@@ -4,6 +4,7 @@ import { ImageInput } from '@/components/ImageInput';
 import { Input } from '@/components/Input';
 import { PageHeader } from '@/components/PageHeader';
 import { userStorage } from '@/database/userStorage';
+import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -11,12 +12,16 @@ import { Alert, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileForm() {
-  const [name, setName] = useState('');
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState(colors.green[500]);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { user, updateUser } = useAuth();
 
-  const { saveUserData, getUserData } = userStorage();
+  const [name, setName] = useState(user?.name || '');
+  const [profileImage, setProfileImage] = useState<string | null>(
+    user?.image || null
+  );
+  const [selectedColor, setSelectedColor] = useState(
+    user?.color || colors.green[500]
+  );
+  const [isProcessing, setIsProcessing] = useState(false);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -29,7 +34,7 @@ export default function ProfileForm() {
     setIsProcessing(true);
 
     try {
-      await saveUserData(name, profileImage, selectedColor);
+      await updateUser(name, profileImage, selectedColor);
 
       setIsProcessing(false);
       router.back();
@@ -39,17 +44,6 @@ export default function ProfileForm() {
       Alert.alert('Erro', 'Não foi possível salvar a mudança do perfil.');
     }
   }
-
-  // Carregar dados atuais ao abrir (opcional, mas recomendado)
-  useEffect(() => {
-    async function loadCurrentData() {
-      const data = await getUserData();
-      if (data.name) setName(data.name);
-      if (data.image) setProfileImage(data.image);
-      if (data.color) setSelectedColor(data.color); // Se seu storage salvar a cor
-    }
-    loadCurrentData();
-  }, []);
 
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>

@@ -15,13 +15,13 @@ import { userStorage } from '@/database/userStorage';
 import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { Loading } from '@/components/Loading';
 
-export default function Index() {
+import { useAuth } from '@/hooks/useAuth';
+
+export default function LogIn() {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
-  const [isChecking, setIsChecking] = useState(true);
-  const router = useRouter();
 
-  const { saveUserData, getUserData } = userStorage();
+  const { loggedIn } = useAuth();
 
   // Função para salvar e avançar
   const handleStart = async () => {
@@ -31,41 +31,13 @@ export default function Index() {
     }
 
     try {
-      await saveUserData(userName, userImage, colors.green[500]);
+      await loggedIn(userName, userImage, colors.green[500]);
       console.log('Dados salvos!');
-      router.push('/(dashboard)');
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar seus dados.');
       console.log(error);
     }
   };
-
-  //CHECAR SE EXISTE UM USUÁRIO
-  async function checkExistingUser() {
-    try {
-      const data = await getUserData();
-      // Verificação rigorosa: se não tiver nome, não redireciona
-      if (data && data.name) {
-        router.replace('/(dashboard)');
-      } else {
-        setUserName('');
-        setUserImage(null);
-        setIsChecking(false); // Libera a tela de boas-vindas
-      }
-    } catch (error) {
-      setIsChecking(false);
-      console.log('Error ao carregar dados', error);
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      checkExistingUser();
-    }, [])
-  );
-
-  // Enquanto checa o banco, não mostra nada (ou um spinner)
-  if (isChecking) return <Loading height={300} width={300} />;
 
   return (
     <SafeAreaProvider>

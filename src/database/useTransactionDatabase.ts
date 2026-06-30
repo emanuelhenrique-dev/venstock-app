@@ -1,6 +1,6 @@
 import { useSQLiteContext } from 'expo-sqlite';
 
-import { userStorage } from './userStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 export type SummaryPeriod =
   | '24h'
@@ -53,7 +53,8 @@ export interface SalesSummaryResponse {
 
 export function useTransactionDatabase() {
   const database = useSQLiteContext();
-  const { getUserData } = userStorage();
+
+  const { user } = useAuth();
 
   async function CreateTransaction(data: CreateTransactionDTO) {
     // withTransactionAsync para garantir que se QUALQUER query falhar,
@@ -63,9 +64,8 @@ export function useTransactionDatabase() {
       const isSale = data.type === 'sale';
       const finalFee = isSale ? data.fee : 0.0;
       const finalTotal = data.total + data.fee;
-      const userData = await getUserData();
 
-      const userName = userData?.name || 'Admin'; //temporário
+      const userName = user?.name || 'Admin';
 
       const statement = await database.prepareAsync(
         `INSERT INTO transactions (type, category, description, fee_value, total_value, user_name)
