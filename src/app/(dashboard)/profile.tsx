@@ -139,9 +139,9 @@ export default function User() {
 
           <OptionCard
             title="Sua Estatística"
-            subtitle="Seu estoque teve 12 movimentações nos últimos 7 dias. Veja aqui."
+            subtitle="Visualize suas estatísticas de vendas e desempenho."
             icon="local-offer" // O ícone de tag da imagem
-            onPress={() => console.log('stats')}
+            onPress={() => router.navigate('/statistics-view')}
           />
 
           <OptionCard
