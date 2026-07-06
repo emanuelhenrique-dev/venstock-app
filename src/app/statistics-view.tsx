@@ -1,17 +1,32 @@
+import { Chart } from '@/components/Chart';
 import { PageHeader } from '@/components/PageHeader';
 
 import { colors, fontFamily } from '@/theme';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
+} from 'react-native';
 import {
   SafeAreaProvider,
   SafeAreaView,
   useSafeAreaInsets
 } from 'react-native-safe-area-context';
 
-type PeriodType =
+import { sampleData } from '@/components/Chart';
+import { getStartDateForPeriod } from '@/utils/getStartDateForPeriod';
+import { useTransactionDatabase } from '@/database/useTransactionDatabase';
+import { Loading } from '@/components/Loading';
+import { HistoryProps } from '@/components/HistoryCard';
+
+export type PeriodType =
   | '7days'
   | '14days'
   | '30days'
@@ -26,11 +41,22 @@ interface PeriodOption {
 }
 
 export default function Statistics() {
-  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>({
     key: '30days',
     label: '30 dias'
   });
+
+  // Estados para os dados reais da tela
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [salesCount, setSalesCount] = useState(0);
+  const [withdrawalsCount, setWithdrawalsCount] = useState(0);
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  const [isFetching, setIsFetching] = useState(true);
+
+  const transactionDatabase = useTransactionDatabase();
 
   const PERIODS: PeriodOption[] = [
     { key: '7days', label: '7 dias' },
@@ -42,7 +68,6 @@ export default function Statistics() {
     { key: 'all', label: 'Tudo' }
   ];
 
-  // 🌟 Função simples para ajustar a frase do cabeçalho de forma perfeita
   const getSubtitleText = () => {
     if (selectedPeriod.key === 'all') {
       return 'Analise o desempenho do seu negócio de todo o período.';
@@ -52,6 +77,112 @@ export default function Statistics() {
     }
     return `Analise o desempenho do seu negócio nos últimos ${selectedPeriod.label}.`;
   };
+
+  function processTransactionsData(
+    transactions: HistoryProps[],
+    periodKey: PeriodType
+  ) {
+    const startDate = getStartDateForPeriod(periodKey);
+
+    // 1. Filtrar pelo período selecionado de forma estrita
+    const filtered = transactions.filter((tx) => {
+      if (!startDate) return true;
+      return new Date(tx.date) >= startDate;
+    });
+
+    let revenue = 0;
+    let sales = 0;
+    let withdrawals = 0;
+
+    // Objeto para acumular os valores por dia/mês para o gráfico
+    const groupedData: Record<string, number> = {};
+
+    filtered.forEach((tx) => {
+      const txDate = new Date(tx.date);
+
+      // Define a legenda do eixo X do gráfico
+      const label =
+        periodKey === '1year' || periodKey === '6months'
+          ? txDate.toLocaleDateString('pt-BR', { month: 'short' }) // Ex: 'jul'
+          : txDate.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit'
+            }); // Ex: '06/07'
+
+      // Soma a quantidade total de itens dentro dessa transação específica
+      const totalQty =
+        tx.items?.reduce((acc, current) => acc + current.quantity, 0) || 0;
+
+      // 🌟 Correção das checagens batendo com as strings da sua interface ('sale' | 'withdrawal')
+      if (tx.type === 'sale') {
+        sales += totalQty;
+        revenue += tx.value || 0; // Soma o valor total cobrado na venda
+
+        // Agrupa os ganhos das vendas na legenda correspondente
+        groupedData[label] = (groupedData[label] || 0) + (tx.value || 0);
+      } else if (tx.type === 'withdrawal') {
+        withdrawals += totalQty;
+      }
+    });
+
+    // 2. Converte o objeto agrupado para o array que o seu componente <Chart /> espera
+    const chartData = Object.entries(groupedData).map(([label, value]) => ({
+      value,
+      label
+    }));
+
+    return { revenue, sales, withdrawals, chartData };
+  }
+
+  async function loadStatisticsData() {
+    try {
+      const data = await transactionDatabase.getTransactions();
+
+      const historyData: HistoryProps[] = data.map((item) => ({
+        id: item.id,
+        type: item.type,
+        value: item.total, // joga o total para a chave 'value'
+        fee: item.fee,
+        category: item.category,
+        userName: item.user_name,
+        date: item.date,
+        description: item.description,
+        items: item.items.map((prod) => ({
+          id: prod.id,
+          name: prod.name,
+          quantity: prod.quantity,
+          price: prod.price
+        }))
+      }));
+
+      console.log('Dados brutos do banco de dados:', historyData);
+
+      // 🌟 Passa a lista limpa diretamente para a função externa de cálculo
+      const { revenue, sales, withdrawals, chartData } =
+        processTransactionsData(historyData, selectedPeriod.key);
+
+      console.log('Dados processados:', {
+        revenue,
+        sales,
+        withdrawals,
+        chartData
+      });
+
+      setTotalRevenue(revenue);
+      setSalesCount(sales);
+      setWithdrawalsCount(withdrawals);
+      setChartData(chartData);
+    } catch (error) {
+      console.log('Erro ao carregar os dados de estatísticas:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados do painel.');
+    } finally {
+      setIsFetching(false);
+    }
+  }
+
+  useEffect(() => {
+    loadStatisticsData();
+  }, [selectedPeriod.key]);
 
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>
@@ -64,17 +195,15 @@ export default function Statistics() {
         }}
         edges={['bottom']}
       >
-        <View style={{ paddingHorizontal: 24 }}>
+        <View>
           <PageHeader
             title1="Minhas"
             title2="Estatísticas"
             subtitle={getSubtitleText()}
             gradient={[colors.green[400], colors.green[500]]}
             back
+            style={{ paddingHorizontal: 24, paddingBottom: 16 }}
           />
-        </View>
-
-        <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -127,6 +256,132 @@ export default function Statistics() {
             })}
           </ScrollView>
         </View>
+        {isFetching ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: -80
+            }}
+          >
+            <Loading height={400} width={400} />
+          </View>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              marginTop: 10,
+              gap: 10,
+              paddingHorizontal: 24
+            }}
+          >
+            {/* CARDS DE RESUMO FINANCEIRO */}
+            <View style={{ marginTop: 16, gap: 8 }}>
+              {/* CARD MASTER: FATURAMENTO */}
+              <View
+                style={{
+                  backgroundColor: '#F9FAFB',
+                  padding: 16,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB'
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontFamily: fontFamily.medium,
+                    color: '#6B7280'
+                  }}
+                >
+                  Faturamento Estimado
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 26,
+                    fontFamily: fontFamily.bold,
+                    color: '#111827',
+                    marginTop: 4,
+                    includeFontPadding: false
+                  }}
+                >
+                  R$ {totalRevenue.toFixed(2).replace('.', ',')}
+                </Text>
+              </View>
+
+              {/* FILA COM VENDAS E RETIRADAS LADO A LADO */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {/* CARD: VENDAS */}
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#F9FAFB',
+                    padding: 16,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: '#E5E7EB'
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontFamily: fontFamily.medium,
+                      color: '#6B7280'
+                    }}
+                  >
+                    Vendas Realizadas
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontFamily: fontFamily.bold,
+                      color: colors.green[500], // Combinando com a identidade verde da tela
+                      marginTop: 4,
+                      includeFontPadding: false
+                    }}
+                  >
+                    {salesCount} un.
+                  </Text>
+                </View>
+
+                {/* CARD: RETIRADAS */}
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#F9FAFB',
+                    padding: 16,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: '#E5E7EB'
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontFamily: fontFamily.medium,
+                      color: '#6B7280'
+                    }}
+                  >
+                    Retiradas / Ajustes
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontFamily: fontFamily.bold,
+                      color: colors.blue[500], // Vermelho para chamar atenção para saídas que não geraram caixa
+                      marginTop: 4,
+                      includeFontPadding: false
+                    }}
+                  >
+                    {withdrawalsCount} un.
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <Chart data={chartData} width={width} />
+          </View>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   );

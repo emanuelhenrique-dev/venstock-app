@@ -16,7 +16,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { List } from '@/components/List';
-import { HistoryCard } from '@/components/HistoryCard';
+import { HistoryCard, HistoryProps } from '@/components/HistoryCard';
 
 import { useCallback, useState } from 'react';
 import { transactionType } from './cart';
@@ -37,7 +37,7 @@ export default function Cashier() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filters, setFilters] = useState<transactionType[]>(['sale']);
 
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<HistoryProps[]>([]);
   const [isFetching, setIsFetching] = useState(true);
 
   //estados dedicados exclusivamente para gerenciar o Pix
@@ -54,7 +54,7 @@ export default function Cashier() {
       setIsFetching(true);
       const data = await transactionDatabase.getTransactions();
 
-      const historyData = data.map((item) => ({
+      const historyData: HistoryProps[] = data.map((item) => ({
         id: item.id,
         type: item.type,
         value: item.total,

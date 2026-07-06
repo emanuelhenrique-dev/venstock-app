@@ -29,7 +29,7 @@ export interface HistoryProps {
   userName: string;
   status?: 'pending' | 'completed' | 'approved';
   date: string;
-  description?: string; // Ex: "Retirada por Avaria"
+  description?: string | null; // Ex: "Retirada por Avaria"
   items?: HistoryItem[]; // Para a versão geral
 }
 
