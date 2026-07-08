@@ -20,7 +20,6 @@ import {
   useSafeAreaInsets
 } from 'react-native-safe-area-context';
 
-import { sampleData } from '@/components/Chart';
 import { getStartDateForPeriod } from '@/utils/getStartDateForPeriod';
 import { useTransactionDatabase } from '@/database/useTransactionDatabase';
 import { Loading } from '@/components/Loading';
@@ -84,7 +83,6 @@ export default function Statistics() {
   ) {
     const startDate = getStartDateForPeriod(periodKey);
 
-    // 1. Filtrar pelo período selecionado de forma estrita
     const filtered = transactions.filter((tx) => {
       if (!startDate) return true;
       return new Date(tx.date) >= startDate;
@@ -94,42 +92,53 @@ export default function Statistics() {
     let sales = 0;
     let withdrawals = 0;
 
-    // Objeto para acumular os valores por dia/mês para o gráfico
-    const groupedData: Record<string, number> = {};
+    const groupedData: Record<
+      string,
+      { value: number; quantity: number; rawDate: Date }
+    > = {};
 
     filtered.forEach((tx) => {
       const txDate = new Date(tx.date);
 
-      // Define a legenda do eixo X do gráfico
       const label =
         periodKey === '1year' || periodKey === '6months'
-          ? txDate.toLocaleDateString('pt-BR', { month: 'short' }) // Ex: 'jul'
+          ? txDate.toLocaleDateString('pt-BR', { month: 'short' })
           : txDate.toLocaleDateString('pt-BR', {
               day: '2-digit',
               month: '2-digit'
-            }); // Ex: '06/07'
+            });
 
-      // Soma a quantidade total de itens dentro dessa transação específica
       const totalQty =
         tx.items?.reduce((acc, current) => acc + current.quantity, 0) || 0;
 
-      // 🌟 Correção das checagens batendo com as strings da sua interface ('sale' | 'withdrawal')
       if (tx.type === 'sale') {
         sales += totalQty;
-        revenue += tx.value || 0; // Soma o valor total cobrado na venda
+        revenue += tx.value || 0;
 
-        // Agrupa os ganhos das vendas na legenda correspondente
-        groupedData[label] = (groupedData[label] || 0) + (tx.value || 0);
+        if (!groupedData[label]) {
+          // Guardamos também o objeto Date puro (rawDate) para conseguir ordenar depois
+          groupedData[label] = { value: 0, quantity: 0, rawDate: txDate };
+        }
+
+        groupedData[label].value += tx.value || 0;
+        groupedData[label].quantity += totalQty;
       } else if (tx.type === 'withdrawal') {
         withdrawals += totalQty;
       }
     });
 
-    // 2. Converte o objeto agrupado para o array que o seu componente <Chart /> espera
-    const chartData = Object.entries(groupedData).map(([label, value]) => ({
-      value,
-      label
-    }));
+    // 🌟 MAPEAR E ORDENAR CRONOLOGICAMENTE (Do mais antigo para o mais recente)
+    const chartData = Object.entries(groupedData)
+      .map(([label, data]) => ({
+        label,
+        value: data.value,
+        quantity: data.quantity,
+        rawDate: data.rawDate // passa o Date puro temporariamente
+      }))
+      // Ordena garantindo que a data mais nova (ex: 08/07) fique por último no array
+      .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+      // Remove o rawDate para limpar o objeto final enviado ao gráfico
+      .map(({ rawDate, ...rest }) => rest);
 
     return { revenue, sales, withdrawals, chartData };
   }
@@ -379,7 +388,7 @@ export default function Statistics() {
                 </View>
               </View>
             </View>
-            <Chart data={chartData} width={width} />
+            <Chart data={chartData} />
           </View>
         )}
       </SafeAreaView>

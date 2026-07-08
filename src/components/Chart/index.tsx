@@ -1,147 +1,313 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
+import { LineChart } from 'react-native-gifted-charts';
 import { colors, fontFamily } from '@/theme';
-import { Text, useWindowDimensions, View } from 'react-native';
-import { LineChart, LineChartPropsType } from 'react-native-gifted-charts';
 
-interface ChartProps extends LineChartPropsType {}
+const screenWidth = Dimensions.get('window').width;
 
-export function Chart({ ...rest }: ChartProps) {
+interface ChartItem {
+  value: number;
+  label: string;
+  quantity: number;
+}
+
+interface ChartProps {
+  data: ChartItem[];
+}
+
+type ChartMode = 'revenue' | 'quantity';
+
+export function Chart({ data }: ChartProps) {
+  const [mode, setMode] = useState<ChartMode>('revenue');
+  const [selectedPoint, setSelectedPoint] = useState<ChartItem | null>(null);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setSelectedPoint(data[data.length - 1]);
+    }
+  }, [data]);
+
+  if (!data || data.length === 0) {
+    return (
+      <View
+        style={{
+          padding: 20,
+          alignItems: 'center',
+          backgroundColor: '#F9FAFB',
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: '#E5E7EB'
+        }}
+      >
+        <Text style={{ fontFamily: fontFamily.medium, color: '#9CA3AF' }}>
+          Nenhuma venda registrada neste período.
+        </Text>
+      </View>
+    );
+  }
+
+  // Ajuste milimétrico para blindar o card contra vazamentos
+  const paddingCard = 32;
+  const yAxisWidth = 50;
+  // O chartWidth agora desconta perfeitamente as laterais para o gráfico caber 100% dentro do card
+  const chartWidth = screenWidth - paddingCard - yAxisWidth - 10;
+
+  const minSpacing = 55;
+  const calculatedSpacing =
+    data.length > 1 ? chartWidth / (data.length - 0.5) : 55;
+  const finalSpacing =
+    calculatedSpacing < minSpacing ? minSpacing : calculatedSpacing;
+
+  const adjustedData = data.map((item) => {
+    const isSelected = selectedPoint && selectedPoint.label === item.label;
+    const value = mode === 'revenue' ? item.value : item.quantity;
+
+    return {
+      ...item,
+      value,
+      dataPointColor: isSelected ? colors.green[500] : '#9CA3AF',
+      dataPointRadius: isSelected ? 6 : 3.5,
+      dataPointBorderColor: isSelected ? colors.white : 'transparent',
+      dataPointBorderWidth: isSelected ? 2 : 0,
+
+      showStrip: isSelected,
+      stripColor: '#9CA3AF',
+      stripWidth: 1.2,
+      stripType: 'dashed',
+      stripOpacity: 0.5
+    };
+  });
+
+  const currentReferenceValue = selectedPoint
+    ? mode === 'revenue'
+      ? selectedPoint.value
+      : selectedPoint.quantity
+    : 0;
+
   return (
     <View
       style={{
         backgroundColor: colors.white,
-        padding: 16,
+        paddingVertical: 18,
+        paddingHorizontal: 12,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        // Sombra leve para dar profundidade (opcional)
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2
+        width: '100%'
       }}
     >
-      <Text
+      {/* CABEÇALHO DO CARD COM ALTERNADOR DE MODO */}
+      <View
         style={{
-          fontSize: 16,
-          fontFamily: fontFamily.bold,
-          color: '#111827',
-          marginBottom: 20
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 24,
+          paddingHorizontal: 4
         }}
       >
-        Desempenho de Vendas
-      </Text>
-      <LineChart
-        // Estilização da Linha Principal
-        thickness={3}
-        color={colors.green[500]} // Linha verde combinando com o tema
-        noOfSections={3}
-        // Efeito de Área com Gradiente Lindo abaixo da linha
-        areaChart
-        startFillColor={colors.green[400]}
-        endFillColor={colors.white}
-        startOpacity={0.4}
-        endOpacity={0.0}
-        // Customização dos Eixos e Textos
-        yAxisThickness={0}
-        xAxisThickness={1}
-        xAxisColor="#E5E7EB"
-        yAxisTextStyle={{
-          color: '#9CA3AF',
-          fontSize: 12,
-          fontFamily: fontFamily.medium
-        }}
-        xAxisLabelTextStyle={{
-          color: '#9CA3AF',
-          fontSize: 12,
-          fontFamily: fontFamily.medium
-        }}
-        // Ajustes de Layout internos
-        height={160}
-        spacing={40} // Espaçamento horizontal entre os pontos
-        initialSpacing={10}
-        hideRules // Esconde as linhas horizontais de fundo para um visual mais clean
-        pointerConfig={{
-          // Linha vertical guia ao tocar no gráfico
-          pointerStripColor: colors.green[400],
-          pointerStripWidth: 2,
-          strokeDashArray: [2, 5]
-        }}
-        {...rest}
-      />
+        <Text
+          style={{
+            fontSize: 15,
+            fontFamily: fontFamily.bold,
+            color: '#111827'
+          }}
+        >
+          Desempenho
+        </Text>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: '#F3F4F6',
+            padding: 3,
+            borderRadius: 10
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setMode('revenue')}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 8,
+              backgroundColor: mode === 'revenue' ? colors.white : 'transparent'
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fontFamily.bold,
+                color: mode === 'revenue' ? colors.green[500] : '#6B7280'
+              }}
+            >
+              R$ Ganhos
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setMode('quantity')}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 8,
+              backgroundColor:
+                mode === 'quantity' ? colors.white : 'transparent'
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fontFamily.bold,
+                color: mode === 'quantity' ? colors.green[500] : '#6B7280'
+              }}
+            >
+              un. Vendidas
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ÁREA DO GRÁFICO SEGURO COM ENCAPSULAMENTO DE OVERFLOW */}
+      <View
+        style={{ width: '100%', overflow: 'hidden', alignItems: 'flex-start' }}
+      >
+        <LineChart
+          data={adjustedData}
+          width={chartWidth}
+          height={180}
+          curved
+          curvature={0.15}
+          thickness={2.5}
+          color={colors.green[500]}
+          areaChart
+          startFillColor={colors.green[400]}
+          endFillColor={colors.white}
+          startOpacity={0.15}
+          endOpacity={0.005}
+          showDataPoints
+          onPress={(item: ChartItem) => {
+            setSelectedPoint(item);
+          }}
+          scrollBuffer={15}
+          // AJUSTE DO EIXO y
+          yAxisThickness={1}
+          yAxisColor="#E5E7EB"
+          yAxisTextStyle={{
+            color: '#9CA3AF',
+            fontSize: 10,
+            fontFamily: fontFamily.medium
+          }}
+          yAxisLabelWidth={yAxisWidth}
+          noOfSections={4}
+          yAxisLabelPrefix={mode === 'revenue' ? 'R$ ' : ''}
+          yAxisLabelSuffix={mode === 'revenue' ? '' : ' un.'}
+          // AJUSTE DO EIXO X
+          xAxisThickness={1}
+          xAxisColor="#E5E7EB"
+          labelsExtraHeight={5}
+          xAxisLabelTextStyle={{
+            color: '#9CA3AF',
+            fontSize: 10,
+            fontFamily: fontFamily.medium,
+            textAlign: 'center',
+            marginTop: 10,
+            marginBottom: -4
+          }}
+          rulesColor="#F3F4F6"
+          rulesThickness={1}
+          spacing={finalSpacing}
+          initialSpacing={15}
+          endSpacing={30} // Folga de segurança no fim da linha rolável
+          isAnimated
+          animationDuration={400}
+          animateOnDataChange
+          anima
+          showReferenceLine1={selectedPoint !== null}
+          referenceLine1Position={currentReferenceValue}
+          referenceLine1Config={{
+            color: '#9CA3AF',
+            thickness: 1.2,
+            type: 'dashed',
+            dashWidth: 4,
+            dashGap: 4
+          }}
+        />
+      </View>
+
+      {/* 🏷️ BALÃO DE INFORMAÇÕES (Fixo na Base) */}
+      {selectedPoint && (
+        <View
+          style={{
+            backgroundColor: '#1E1E24',
+            padding: 12,
+            borderRadius: 12,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 24,
+            borderWidth: 1,
+            borderColor: '#374151'
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                fontSize: 11,
+                fontFamily: fontFamily.medium,
+                color: '#9CA3AF'
+              }}
+            >
+              Dia / Período:{' '}
+              <Text
+                style={{ color: colors.white, fontFamily: fontFamily.bold }}
+              >
+                {selectedPoint.label}
+              </Text>
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: fontFamily.bold,
+                color: colors.white,
+                marginTop: 2
+              }}
+            >
+              Faturamento: R$ {selectedPoint.value.toFixed(2).replace('.', ',')}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: '#272730',
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 8,
+              alignItems: 'center'
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontFamily: fontFamily.bold,
+                color: '#10B981'
+              }}
+            >
+              {selectedPoint.quantity} un.
+            </Text>
+            <Text
+              style={{
+                fontSize: 9,
+                fontFamily: fontFamily.medium,
+                color: '#9CA3AF'
+              }}
+            >
+              vendidos
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
-
-export const sampleData = {
-  '1M': [
-    { value: 5200 },
-    { value: 5150 },
-    { value: 6285 },
-    { value: 5220 },
-    { value: 5400 },
-    { value: 8330 },
-    { value: 9480 }
-  ],
-  '3M': [
-    { value: 4800 },
-    { value: 4925 },
-    { value: 4750 },
-    { value: 5050 },
-    { value: 4980 },
-    { value: 5200 },
-    { value: 5090 },
-    { value: 5330 },
-    { value: 5260 },
-    { value: 5485 },
-    { value: 5365 },
-    { value: 5600 }
-  ],
-  '6M': [
-    { value: 5000 },
-    { value: 5120 },
-    { value: 4890 },
-    { value: 5230 },
-    { value: 5075 },
-    { value: 5410 },
-    { value: 5280 },
-    { value: 5525 },
-    { value: 5430 },
-    { value: 5650 },
-    { value: 5575 },
-    { value: 5790 },
-    { value: 5710 },
-    { value: 5935 },
-    { value: 5860 },
-    { value: 6075 },
-    { value: 6000 },
-    { value: 6220 }
-  ],
-  '12M': [
-    { value: 5300 },
-    { value: 5180 },
-    { value: 5440 },
-    { value: 5335 },
-    { value: 5575 },
-    { value: 5480 },
-    { value: 5695 },
-    { value: 5610 },
-    { value: 5830 },
-    { value: 5755 },
-    { value: 5975 },
-    { value: 5900 },
-    { value: 6115 },
-    { value: 6040 },
-    { value: 6255 },
-    { value: 6190 },
-    { value: 6405 },
-    { value: 6340 },
-    { value: 6555 },
-    { value: 6490 },
-    { value: 6700 },
-    { value: 6640 },
-    { value: 6845 },
-    { value: 6785 },
-    { value: 6985 }
-  ]
-};
