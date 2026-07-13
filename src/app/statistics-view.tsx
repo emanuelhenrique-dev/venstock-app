@@ -3,10 +3,10 @@ import { PageHeader } from '@/components/PageHeader';
 
 import { colors, fontFamily } from '@/theme';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { CountUp } from 'use-count-up';
 
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
@@ -14,16 +14,13 @@ import {
   useWindowDimensions,
   View
 } from 'react-native';
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-  useSafeAreaInsets
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { getStartDateForPeriod } from '@/utils/getStartDateForPeriod';
 import { useTransactionDatabase } from '@/database/useTransactionDatabase';
 import { Loading } from '@/components/Loading';
 import { HistoryProps } from '@/components/HistoryCard';
+import { numberToCurrency } from '@/utils/numberToCurrency';
 
 export type PeriodType =
   | '7days'
@@ -40,8 +37,6 @@ interface PeriodOption {
 }
 
 export default function Statistics() {
-  const { width } = useWindowDimensions();
-
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>({
     key: '30days',
     label: '30 dias'
@@ -56,6 +51,11 @@ export default function Statistics() {
   const [isFetching, setIsFetching] = useState(true);
 
   const transactionDatabase = useTransactionDatabase();
+
+  const previousRevenueRef = useRef<number | null>(null);
+
+  // O valor inicial será o faturamento antigo; se não existir, começa do 0
+  const startRevenueValue = previousRevenueRef.current ?? 0;
 
   const PERIODS: PeriodOption[] = [
     { key: '7days', label: '7 dias' },
@@ -277,7 +277,7 @@ export default function Statistics() {
             <Loading height={400} width={400} />
           </View>
         ) : (
-          <View
+          <ScrollView
             style={{
               flex: 1,
               marginTop: 10,
@@ -306,6 +306,8 @@ export default function Statistics() {
                 >
                   Faturamento Estimado
                 </Text>
+
+                {/* O COUNTUP AGORA ENVOLVE E ESTILIZA O TEXTO */}
                 <Text
                   style={{
                     fontSize: 26,
@@ -315,10 +317,16 @@ export default function Statistics() {
                     includeFontPadding: false
                   }}
                 >
-                  R$ {totalRevenue.toFixed(2).replace('.', ',')}
+                  <CountUp
+                    key={totalRevenue} // Força a animação rodar de novo se o valor mudar
+                    isCounting
+                    start={0}
+                    end={totalRevenue}
+                    duration={1.2} // 1.2s fica bem fluido
+                    formatter={numberToCurrency}
+                  />
                 </Text>
               </View>
-
               {/* FILA COM VENDAS E RETIRADAS LADO A LADO */}
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {/* CARD: VENDAS */}
@@ -350,7 +358,15 @@ export default function Statistics() {
                       includeFontPadding: false
                     }}
                   >
-                    {salesCount} un.
+                    <CountUp
+                      key={salesCount} // Reseta e anima junto com o gráfico
+                      isCounting
+                      start={0}
+                      end={salesCount}
+                      duration={1.2} // Mesma duração para sincronia total
+                      // 🌟 Formata como inteiro e adiciona o sufixo de unidades
+                      formatter={(val) => `${val.toFixed(0)} un.`}
+                    />
                   </Text>
                 </View>
 
@@ -383,13 +399,21 @@ export default function Statistics() {
                       includeFontPadding: false
                     }}
                   >
-                    {withdrawalsCount} un.
+                    <CountUp
+                      key={withdrawalsCount} // Reseta e anima junto com o gráfico
+                      isCounting
+                      start={0}
+                      end={withdrawalsCount}
+                      duration={1.2} // Mesma duração para sincronia total
+                      // 🌟 Formata como inteiro e adiciona o sufixo de unidades
+                      formatter={(val) => `${val.toFixed(0)} un.`}
+                    />
                   </Text>
                 </View>
               </View>
             </View>
             <Chart data={chartData} />
-          </View>
+          </ScrollView>
         )}
       </SafeAreaView>
     </SafeAreaProvider>

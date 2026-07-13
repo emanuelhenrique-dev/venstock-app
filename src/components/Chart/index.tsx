@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
+import { CurveType, LineChart } from 'react-native-gifted-charts';
 import { colors, fontFamily } from '@/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -58,8 +58,18 @@ export function Chart({ data }: ChartProps) {
   const finalSpacing =
     calculatedSpacing < minSpacing ? minSpacing : calculatedSpacing;
 
+  // Determina o valor máximo para o eixo Y com base no modo selecionado
+  const maxValue = data.reduce((max, item) => {
+    const val = mode === 'revenue' ? item.value : item.quantity;
+    return val > max ? val : max;
+  }, 0);
+
+  // Define quantas seções usar no eixo Y
+  const dynamicSections =
+    mode === 'revenue' ? 4 : maxValue <= 4 && maxValue > 0 ? maxValue : 4;
+
   const adjustedData = data.map((item) => {
-    const isSelected = selectedPoint && selectedPoint.label === item.label;
+    const isSelected = !!(selectedPoint && selectedPoint.label === item.label);
     const value = mode === 'revenue' ? item.value : item.quantity;
 
     return {
@@ -90,6 +100,7 @@ export function Chart({ data }: ChartProps) {
         backgroundColor: colors.white,
         paddingVertical: 18,
         paddingHorizontal: 12,
+        marginVertical: 10,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#E5E7EB',
@@ -171,26 +182,30 @@ export function Chart({ data }: ChartProps) {
 
       {/* ÁREA DO GRÁFICO SEGURO COM ENCAPSULAMENTO DE OVERFLOW */}
       <View
-        style={{ width: '100%', overflow: 'hidden', alignItems: 'flex-start' }}
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          alignItems: 'flex-start'
+        }}
       >
         <LineChart
+          key={`chart-len-${data.length}`}
           data={adjustedData}
-          width={chartWidth}
+          width={chartWidth + 20}
           height={180}
           curved
-          curvature={0.15}
+          curvature={0.1}
+          curveType={CurveType.QUADRATIC}
           thickness={2.5}
           color={colors.green[500]}
           areaChart
-          startFillColor={colors.green[400]}
-          endFillColor={colors.white}
+          startFillColor="rgba(103, 255, 33, 0.35)"
+          endFillColor="rgba(5, 7, 14, 0)"
           startOpacity={0.15}
           endOpacity={0.005}
-          showDataPoints
           onPress={(item: ChartItem) => {
             setSelectedPoint(item);
           }}
-          scrollBuffer={15}
           // AJUSTE DO EIXO y
           yAxisThickness={1}
           yAxisColor="#E5E7EB"
@@ -200,7 +215,7 @@ export function Chart({ data }: ChartProps) {
             fontFamily: fontFamily.medium
           }}
           yAxisLabelWidth={yAxisWidth}
-          noOfSections={4}
+          noOfSections={dynamicSections}
           yAxisLabelPrefix={mode === 'revenue' ? 'R$ ' : ''}
           yAxisLabelSuffix={mode === 'revenue' ? '' : ' un.'}
           // AJUSTE DO EIXO X
@@ -219,11 +234,11 @@ export function Chart({ data }: ChartProps) {
           rulesThickness={1}
           spacing={finalSpacing}
           initialSpacing={15}
-          endSpacing={30} // Folga de segurança no fim da linha rolável
+          endSpacing={40} // Folga de segurança no fim da linha rolável
           isAnimated
-          animationDuration={400}
+          animationDuration={800}
           animateOnDataChange
-          anima
+          onDataChangeAnimationDuration={800}
           showReferenceLine1={selectedPoint !== null}
           referenceLine1Position={currentReferenceValue}
           referenceLine1Config={{
@@ -233,6 +248,16 @@ export function Chart({ data }: ChartProps) {
             dashWidth: 4,
             dashGap: 4
           }}
+          roundToDigits={mode === 'revenue' ? 2 : 0}
+          yAxisIndicesWidth={mode === 'revenue' ? undefined : 0}
+          // Propriedade extra de segurança para forçar valores inteiros nos passos do eixo Y
+          stepValue={
+            mode === 'revenue'
+              ? undefined
+              : maxValue <= 4 && maxValue > 0
+                ? 1
+                : undefined
+          }
         />
       </View>
 
