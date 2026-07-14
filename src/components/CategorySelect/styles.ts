@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    marginTop: 8,
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: colors.gray[200]

@@ -7,7 +7,8 @@ import {
   Modal,
   FlatList,
   StyleSheet,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  ViewProps
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, fontFamily } from '@/theme';
@@ -20,8 +21,8 @@ export interface SelectedCategory {
   name: string;
 }
 
-interface CategorySelectProps {
-  label: string;
+interface CategorySelectProps extends ViewProps {
+  label?: string;
   options: SelectedCategory[];
   selectedCategory: SelectedCategory | null;
   onSelect: (category: SelectedCategory) => void;
@@ -31,7 +32,8 @@ export function CategorySelect({
   label,
   options,
   selectedCategory,
-  onSelect
+  onSelect,
+  ...rest
 }: CategorySelectProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -43,8 +45,8 @@ export function CategorySelect({
   console.log(options);
 
   return (
-    <View style={{ gap: 8 }}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={{ gap: 8, marginTop: 8 }} {...rest}>
+      {label && <Text style={styles.label}>{label}</Text>}
 
       {/* O "Botão" que parece um Input */}
       <TouchableOpacity

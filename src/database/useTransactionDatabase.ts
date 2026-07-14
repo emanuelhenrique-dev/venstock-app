@@ -43,6 +43,7 @@ export type TransactionItemResponse = {
   product_name: string;
   quantity: number;
   price: number;
+  category_id?: number;
 };
 
 // Interface para o retorno do Summary de Vendas
@@ -125,8 +126,10 @@ export function useTransactionDatabase() {
       // Para cada transação, busca os itens vinculados a ela
       for (const transaction of transactions) {
         const items = await database.getAllAsync<TransactionItemResponse>(
-          `SELECT * FROM transaction_items 
-           WHERE transaction_id = ?`,
+          `SELECT ti.*, p.category_id 
+          FROM transaction_items ti
+          LEFT JOIN products p ON ti.product_id = p.id
+          WHERE ti.transaction_id = ?`,
           [transaction.id]
         );
 
@@ -145,7 +148,8 @@ export function useTransactionDatabase() {
             historyItemId: String(item.id),
             name: item.product_name,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            categoryId: item.category_id ? String(item.category_id) : undefined
           }))
         });
       }

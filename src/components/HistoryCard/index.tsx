@@ -18,6 +18,7 @@ interface HistoryItem {
   name: string;
   quantity: number;
   price?: number;
+  categoryId?: string;
 }
 
 export interface HistoryProps {

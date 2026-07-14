@@ -21,6 +21,12 @@ import { useTransactionDatabase } from '@/database/useTransactionDatabase';
 import { Loading } from '@/components/Loading';
 import { HistoryProps } from '@/components/HistoryCard';
 import { numberToCurrency } from '@/utils/numberToCurrency';
+import {
+  CategoryFilter,
+  RankingItem,
+  TopSellingSection
+} from '@/components/TopSellingSection';
+import { useCategoryDatabase } from '@/database/useCategoryDatabase';
 
 export type PeriodType =
   | '7days'
@@ -47,15 +53,13 @@ export default function Statistics() {
   const [salesCount, setSalesCount] = useState(0);
   const [withdrawalsCount, setWithdrawalsCount] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [topProducts, setTopProducts] = useState<RankingItem[]>([]);
+  const [categories, setCategories] = useState<CategoryFilter[]>([]);
 
   const [isFetching, setIsFetching] = useState(true);
 
   const transactionDatabase = useTransactionDatabase();
-
-  const previousRevenueRef = useRef<number | null>(null);
-
-  // O valor inicial será o faturamento antigo; se não existir, começa do 0
-  const startRevenueValue = previousRevenueRef.current ?? 0;
+  const categoryDatabase = useCategoryDatabase();
 
   const PERIODS: PeriodOption[] = [
     { key: '7days', label: '7 dias' },
@@ -79,7 +83,8 @@ export default function Statistics() {
 
   function processTransactionsData(
     transactions: HistoryProps[],
-    periodKey: PeriodType
+    periodKey: PeriodType,
+    categories: CategoryFilter[]
   ) {
     const startDate = getStartDateForPeriod(periodKey);
 
@@ -95,6 +100,18 @@ export default function Statistics() {
     const groupedData: Record<
       string,
       { value: number; quantity: number; rawDate: Date }
+    > = {};
+
+    // Mapa temporário para acumular os produtos mais vendidos
+    const productMap: Record<
+      string,
+      {
+        id: string;
+        name: string;
+        quantity: number;
+        revenue: number;
+        categoryId?: string;
+      }
     > = {};
 
     filtered.forEach((tx) => {
@@ -122,12 +139,27 @@ export default function Statistics() {
 
         groupedData[label].value += tx.value || 0;
         groupedData[label].quantity += totalQty;
+
+        //Processa cada produto vendido nesta transação para a nossa tabela
+        tx.items?.forEach((prod) => {
+          if (!productMap[prod.id]) {
+            productMap[prod.id] = {
+              id: prod.id,
+              name: prod.name,
+              quantity: 0,
+              revenue: 0,
+              categoryId: prod.categoryId // Garante o ID para o filtro por categoria funcionar
+            };
+          }
+          productMap[prod.id].quantity += prod.quantity;
+          productMap[prod.id].revenue += prod.quantity * (prod.price || 0);
+        });
       } else if (tx.type === 'withdrawal') {
         withdrawals += totalQty;
       }
     });
 
-    // 🌟 MAPEAR E ORDENAR CRONOLOGICAMENTE (Do mais antigo para o mais recente)
+    // MAPEAR E ORDENAR CRONOLOGICAMENTE (Do mais antigo para o mais recente)
     const chartData = Object.entries(groupedData)
       .map(([label, data]) => ({
         label,
@@ -140,13 +172,26 @@ export default function Statistics() {
       // Remove o rawDate para limpar o objeto final enviado ao gráfico
       .map(({ rawDate, ...rest }) => rest);
 
-    return { revenue, sales, withdrawals, chartData };
+    // Transforma o mapa de produtos em array e ordena do mais vendido para o menos vendido
+    const topProductsData = Object.values(productMap).sort(
+      (a, b) => b.quantity - a.quantity
+    );
+
+    return { revenue, sales, withdrawals, chartData, topProductsData };
   }
 
   async function loadStatisticsData() {
     try {
-      const data = await transactionDatabase.getTransactions();
+      //  Busca as categorias reais do banco para sincronizar os IDs
+      const dbCategories = await categoryDatabase.getAll();
+      const formattedCategories = dbCategories.map((cat) => ({
+        id: cat.id.toString(),
+        name: cat.name
+      }));
+      setCategories(formattedCategories);
 
+      // Busca as transações
+      const data = await transactionDatabase.getTransactions();
       const historyData: HistoryProps[] = data.map((item) => ({
         id: item.id,
         type: item.type,
@@ -160,27 +205,34 @@ export default function Statistics() {
           id: prod.id,
           name: prod.name,
           quantity: prod.quantity,
-          price: prod.price
+          price: prod.price,
+          categoryId: prod.categoryId
         }))
       }));
 
       console.log('Dados brutos do banco de dados:', historyData);
 
       // 🌟 Passa a lista limpa diretamente para a função externa de cálculo
-      const { revenue, sales, withdrawals, chartData } =
-        processTransactionsData(historyData, selectedPeriod.key);
+      const { revenue, sales, withdrawals, chartData, topProductsData } =
+        processTransactionsData(
+          historyData,
+          selectedPeriod.key,
+          formattedCategories
+        );
 
       console.log('Dados processados:', {
         revenue,
         sales,
         withdrawals,
-        chartData
+        chartData,
+        topProductsData
       });
 
       setTotalRevenue(revenue);
       setSalesCount(sales);
       setWithdrawalsCount(withdrawals);
       setChartData(chartData);
+      setTopProducts(topProductsData);
     } catch (error) {
       console.log('Erro ao carregar os dados de estatísticas:', error);
       Alert.alert('Erro', 'Não foi possível carregar os dados do painel.');
@@ -413,6 +465,7 @@ export default function Statistics() {
               </View>
             </View>
             <Chart data={chartData} />
+            <TopSellingSection items={topProducts} categories={categories} />
           </ScrollView>
         )}
       </SafeAreaView>
