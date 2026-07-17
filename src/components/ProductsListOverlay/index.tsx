@@ -38,6 +38,7 @@ export type ProductCardProps = {
   minStock: number;
   qtdVendidos: number;
   imageUrl?: string;
+  identifier?: string;
   color?: string;
 };
 
@@ -103,6 +104,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
         minStock: item.minEstoque,
         qtdVendidos: item.qtdVendidos,
         imageUrl: item.imageUrl ?? undefined,
+        identifier: item.identifier ?? undefined,
         color: item.color
       }));
     } catch (error) {

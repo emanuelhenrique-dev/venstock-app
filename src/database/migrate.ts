@@ -20,6 +20,7 @@ export async function migrate(database: SQLiteDatabase) {
       quantity INTEGER NOT NULL,
       min_stock INTEGER NOT NULL DEFAULT 0,
       barcode TEXT,
+      identifier TEXT,
       color TEXT NOT NULL,            
       image_url TEXT,
       category_id INTEGER NOT NULL,
@@ -53,4 +54,12 @@ export async function migrate(database: SQLiteDatabase) {
     );
 
   `);
+
+  const productColumns = await database.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(products)`
+  );
+
+  if (!productColumns.some((column) => column.name === 'identifier')) {
+    await database.execAsync(`ALTER TABLE products ADD COLUMN identifier TEXT`);
+  }
 }

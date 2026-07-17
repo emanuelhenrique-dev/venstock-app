@@ -7,6 +7,7 @@ export type ProductCreate = {
   qtdEstoque: number;
   minEstoque: number;
   codBar?: string;
+  identifier?: string;
   color: string; // Obrigatório para o produto agora
   imageUrl?: string; // Opcional
   category_id: number;
@@ -24,6 +25,7 @@ export type ProductResponse = {
   minEstoque: number;
   qtdVendidos: number;
   codBar?: string;
+  identifier?: string;
   color: string;
   imageUrl?: string | null; // Pode vir nulo do banco se não tiver foto
   category_id: number;
@@ -38,9 +40,9 @@ export function useProductDatabase() {
   async function create(data: ProductCreate) {
     const statement = await database.prepareAsync(`
       INSERT INTO products 
-        (name, price, quantity, min_stock, barcode, color, image_url, category_id)
+        (name, price, quantity, min_stock, barcode, identifier, color, image_url, category_id)
       VALUES
-        ($name, $price, $quantity, $min_stock, $barcode, $color, $image_url, $category_id)
+        ($name, $price, $quantity, $min_stock, $barcode, $identifier, $color, $image_url, $category_id)
     `);
 
     try {
@@ -50,6 +52,7 @@ export function useProductDatabase() {
         $quantity: data.qtdEstoque,
         $min_stock: data.minEstoque,
         $barcode: data.codBar || null,
+        $identifier: data.identifier?.trim() || null,
         $color: data.color,
         $image_url: data.imageUrl || null,
         $category_id: data.category_id
@@ -75,7 +78,8 @@ export function useProductDatabase() {
         p.quantity AS qtdEstoque,
         p.min_stock AS minEstoque,
         0 AS qtdVendidos,
-        p.barcode AS codBar,       
+        p.barcode AS codBar,
+        p.identifier AS identifier,
         p.color,
         p.image_url AS imageUrl,
         p.category_id,
@@ -146,6 +150,7 @@ export function useProductDatabase() {
           p.min_stock AS minEstoque,
           0 AS qtdVendidos,          -- Fixado em 0 por enquanto
           p.barcode AS codBar,
+          p.identifier AS identifier,
           p.color,
           p.image_url AS imageUrl,
           p.category_id,
@@ -224,6 +229,7 @@ export function useProductDatabase() {
           quantity = ?, 
           min_stock = ?, 
           barcode = ?, 
+          identifier = ?,
           color = ?, 
           image_url = ?, 
           category_id = ?
@@ -235,6 +241,7 @@ export function useProductDatabase() {
           data.qtdEstoque,
           data.minEstoque,
           data.codBar || null,
+          data.identifier?.trim() || null,
           data.color,
           data.imageUrl || null,
           data.category_id,
@@ -283,7 +290,8 @@ export function useProductDatabase() {
            WHERE ti.product_id = p.id AND t.type = 'sale'),
           0
         ) AS qtdVendidos,
-        p.barcode AS codBar,       
+        p.barcode AS codBar,
+        p.identifier AS identifier,
         p.color,
         p.image_url AS imageUrl,
         p.category_id,

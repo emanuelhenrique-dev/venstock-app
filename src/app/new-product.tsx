@@ -40,6 +40,7 @@ export default function ProductForm() {
   const [stock, setStock] = useState('');
   const [minStock, setMinStock] = useState('');
   const [codBar, setCodBar] = useState('');
+  const [productIdentifier, setProductIdentifier] = useState('');
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -103,6 +104,7 @@ export default function ProductForm() {
       qtdEstoque: stockNumber,
       minEstoque: minStockNumber,
       codBar: codBar.trim() || undefined, // Se estiver vazio, envia undefined (salva nulo no banco)
+      identifier: productIdentifier.trim() || undefined,
       color: selectedColor,
       imageUrl: productImage ?? undefined,
       category_id: Number(selectedCategory?.id)
@@ -120,6 +122,7 @@ export default function ProductForm() {
       qtdEstoque: stockNumber,
       minEstoque: minStockNumber,
       codBar: codBar.trim() || undefined,
+      identifier: productIdentifier.trim() || undefined,
       color: selectedColor,
       imageUrl: productImage ?? undefined,
       category_id: Number(selectedCategory?.id)
@@ -179,6 +182,7 @@ export default function ProductForm() {
         setStock(String(productData.qtdEstoque));
         setMinStock(String(productData.minEstoque));
         setCodBar(productData.codBar ?? '');
+        setProductIdentifier(productData.identifier ?? '');
         setSelectedColor(productData.color);
         setProductImage(productData.imageUrl ?? null);
 
@@ -249,12 +253,22 @@ export default function ProductForm() {
               color2={selectedColor}
               variant="category"
             />
-            <Input
-              label="NOME DA PRODUTO*"
-              placeholder="Digite o nome do produto"
-              value={productName}
-              onChangeText={setProductName}
-            />
+            <View style={{ flexDirection: 'row', gap: 30, width: '100%' }}>
+              <Input
+                label="NOME DO PRODUTO*"
+                placeholder="Digite o nome do produto"
+                value={productName}
+                onChangeText={setProductName}
+                mini
+              />
+              <Input
+                label="IDENTIFICADOR EXTRA"
+                placeholder="Opcional"
+                value={productIdentifier}
+                onChangeText={setProductIdentifier}
+                mini
+              />
+            </View>
             <CategorySelect
               label="CATEGORIA*"
               options={categoriesOptions}
