@@ -78,8 +78,10 @@ export function SearchList({ searchResults, isSearching }: props) {
           name: item.name,
           price: item.price,
           qtdEstoque: item.qtdEstoque,
+          minStock: item.minEstoque,
           qtdVendidos: item.qtdVendidos,
           imageUrl: item.imageUrl ?? undefined,
+          identifier: item.identifier ?? undefined,
           color: item.color
         };
 

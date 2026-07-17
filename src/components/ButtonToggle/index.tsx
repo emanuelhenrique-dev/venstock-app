@@ -1,4 +1,4 @@
-import { transactionCategoryType } from '@/app/(dashboard)/cart';
+import { transactionType } from '@/app/(dashboard)/cart';
 import { colors, fontFamily } from '@/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,9 +11,9 @@ import {
 
 interface ButtonToggleProps extends TouchableOpacityProps {
   text: string;
-  type: transactionCategoryType;
+  type: transactionType;
   icon: keyof typeof MaterialIcons.glyphMap;
-  filters: transactionCategoryType[]; // Tipagem corrigida aqui
+  filters: transactionType[]; // Tipagem corrigida aqui
 }
 
 export function ButtonToggle({
