@@ -154,6 +154,13 @@ export default function User() {
           />
 
           <OptionCard
+            title="Sobre o Aplicativo"
+            subtitle="Informações do sistema e versão atual."
+            icon="info-outline"
+            onPress={() => router.navigate('/about')}
+          />
+
+          <OptionCard
             title="Sair"
             subtitle="Sair da conta atual."
             icon="door-back"

@@ -70,6 +70,13 @@ export default function Layout() {
               animation: 'slide_from_bottom'
             }}
           />
+          <Stack.Screen
+            name="about"
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom'
+            }}
+          />
         </Stack>
       </SQLiteProvider>
     </AuthProvider>

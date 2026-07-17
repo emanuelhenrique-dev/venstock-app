@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Text, View, Platform, StatusBar, Alert } from 'react-native';
+import {
+  Text,
+  View,
+  Platform,
+  StatusBar,
+  Alert,
+  TouchableOpacity
+} from 'react-native';
 
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { Button } from '@/components/Button';
 import { CustomTitle } from '@/components/CustomTitle';
@@ -20,8 +28,10 @@ import { useAuth } from '@/hooks/useAuth';
 export default function LogIn() {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [isNavigatingAbout, setIsNavigatingAbout] = useState(false);
 
   const { loggedIn } = useAuth();
+  const router = useRouter();
 
   // Função para salvar e avançar
   const handleStart = async () => {
@@ -50,6 +60,39 @@ export default function LogIn() {
         }}
         edges={['bottom']}
       >
+        <TouchableOpacity
+          onPress={async () => {
+            if (isNavigatingAbout) return;
+            setIsNavigatingAbout(true);
+            try {
+              await router.push('/about');
+            } finally {
+              setIsNavigatingAbout(false);
+            }
+          }}
+          disabled={isNavigatingAbout}
+          style={{
+            position: 'absolute',
+            top: 62,
+            right: 24,
+            zIndex: 10,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: colors.white,
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+            elevation: 6,
+            opacity: isNavigatingAbout ? 0.7 : 1
+          }}
+        >
+          <MaterialIcons name="info" size={24} color={colors.green[500]} />
+        </TouchableOpacity>
+
         <KeyboardWrapper
           keyboardVerticalOffset={Platform.OS === 'android' ? -30 : 0}
           // contentContainerStyle do scroll view
