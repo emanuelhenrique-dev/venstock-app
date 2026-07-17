@@ -1,4 +1,4 @@
-import React, { memo, ReactNode, useRef, useState } from 'react'; // Importante para o Swipeable funcionar bem
+import React, { memo, ReactNode, useEffect, useRef, useState } from 'react'; // Importante para o Swipeable funcionar bem
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, ViewProps, View, TouchableOpacity } from 'react-native';
 import { styles } from './styles';
@@ -39,6 +39,8 @@ function ProductCardComponent({
   ...rest
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods | null>(null);
+  const [showIdentifier, setShowIdentifier] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isLowStock = data.qtdEstoque <= data.minStock;
 
@@ -46,6 +48,27 @@ function ProductCardComponent({
     swipeableRef.current?.close();
     await leftAction.onOpen();
   }
+
+  function clearIdentifierTimer() {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }
+
+  function showIdentifierForSeconds() {
+    setShowIdentifier(true);
+    clearIdentifierTimer();
+    timeoutRef.current = setTimeout(() => {
+      setShowIdentifier(false);
+    }, 3000);
+  }
+
+  useEffect(() => {
+    return () => {
+      clearIdentifierTimer();
+    };
+  }, []);
 
   // Funções agora apenas repassam a ordem para o pai
   const handleAdd = () => {
@@ -79,12 +102,23 @@ function ProductCardComponent({
       ref={swipeableRef}
     >
       <View style={styles.container} {...rest}>
-        <CustomImage
-          image={data.imageUrl || null}
-          size={50}
-          color={data.color || colors.blue[400]}
-          variant="product"
-        />
+        <TouchableOpacity
+          style={styles.imageWrapper}
+          activeOpacity={0.85}
+          onPress={() => showIdentifierForSeconds()}
+        >
+          <CustomImage
+            image={data.imageUrl || null}
+            size={50}
+            color={data.color || colors.blue[400]}
+            variant="product"
+          />
+          {data.identifier && showIdentifier ? (
+            <View style={styles.identifierOverlay}>
+              <Text style={styles.identifierText}>{data.identifier}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
         <View style={styles.content}>
           {variant == 'stock' && (
             <View style={styles.statusContainer}>
