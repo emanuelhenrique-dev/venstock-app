@@ -269,7 +269,9 @@ export default function About() {
             <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
               {/* LINK GITHUB */}
               <TouchableOpacity
-                onPress={() => openLink('https://github.com/seu-usuario')}
+                onPress={() =>
+                  openLink('https://github.com/emanuelhenrique-dev')
+                }
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -294,7 +296,9 @@ export default function About() {
 
               {/* LINK LINKEDIN */}
               <TouchableOpacity
-                onPress={() => openLink('https://linkedin.com/in/seu-perfil')}
+                onPress={() =>
+                  openLink('https://www.linkedin.com/in/emanuel-hfsilva/')
+                }
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
