@@ -39,8 +39,14 @@ export function SummaryComponent({
         style={styles.gradient}
       >
         <View style={styles.header}>
-          {!sale && <MaterialIcons name="report" size={14} color="yellow" />}
-          <Text style={styles.details}>{data.details}</Text>
+          {!sale && !(data.details === '0') && (
+            <MaterialIcons name="report" size={14} color="yellow" />
+          )}
+          {!(data.details === '0') ? (
+            <Text style={styles.details}>{data.details}</Text>
+          ) : (
+            <Text style={styles.details}></Text>
+          )}
         </View>
         <View style={[styles.content]}>
           <MaterialIcons name={icon} size={22} color={colors.white} />

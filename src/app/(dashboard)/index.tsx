@@ -10,7 +10,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  SectionList,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -24,10 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
-import {
-  CategoryResponse,
-  useCategoryDatabase
-} from '@/database/useCategoryDatabase';
+import { useCategoryDatabase } from '@/database/useCategoryDatabase';
 import { EmptyComponent } from '@/components/EmptyComponent';
 import {
   SummaryPeriod,
@@ -103,17 +99,6 @@ export default function Index() {
   //Função para alternar o modo do card de estoque ao clicar
   function handleToggleStockMode() {
     setShowUniqueProducts((prev) => !prev);
-  }
-
-  async function loadProfile(): Promise<string | null> {
-    try {
-      const data = await getUserData();
-      return data.name;
-    } catch (error) {
-      Alert.alert('Error', 'Erro ao carregar Usuário');
-      console.log('Erro ao carregar perfil no Dashboard', error);
-      return null;
-    }
   }
 
   async function fetchCategories(): Promise<CategoryCardProps[]> {
@@ -347,7 +332,8 @@ export default function Index() {
             }
             data={{
               // Se for produtos únicos, você pode mudar o detalhe para "cadastrados" ou manter os baixos
-              details: `${lowStockCount} baixos`,
+              details:
+                Number(lowStockCount) <= 0 ? `0` : `${lowStockCount} baixos`,
               value: showUniqueProducts ? uniqueProductsCount : totalStock
             }}
             icon="inventory"
