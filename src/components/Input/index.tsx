@@ -7,16 +7,25 @@ interface Props extends TextInputProps {
   placeholder: string;
   mini?: boolean;
   children?: React.ReactNode;
+  ViewStyle?: string;
+  inputStyle?: object;
 }
 
-export function Input({ label, mini = false, children, ...rest }: Props) {
+export function Input({
+  label,
+  mini = false,
+  children,
+  ViewStyle,
+  inputStyle,
+  ...rest
+}: Props) {
   return (
     <View style={[styles.container, mini ? { flex: 1 } : null]}>
       {label && <Text style={styles.label}>{label}</Text>}
 
       <View style={styles.content}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputStyle]}
           placeholderTextColor={colors.gray[400]}
           {...rest}
         />

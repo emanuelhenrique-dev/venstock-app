@@ -253,21 +253,34 @@ export default function ProductForm() {
               color2={selectedColor}
               variant="category"
             />
-            <View style={{ flexDirection: 'row', gap: 30, width: '100%' }}>
-              <Input
-                label="NOME DO PRODUTO*"
-                placeholder="Digite o nome do produto"
-                value={productName}
-                onChangeText={setProductName}
-                mini
-              />
-              <Input
-                label="IDENTIFICADOR EXTRA"
-                placeholder="Opcional"
-                value={productIdentifier}
-                onChangeText={setProductIdentifier}
-                mini
-              />
+            <View
+              style={{
+                flexDirection: 'row',
+                width: '100%',
+                alignItems: 'flex-start',
+                gap: 12
+              }}
+            >
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Input
+                  label="NOME DO PRODUTO*"
+                  placeholder="Digite o nome do produto"
+                  value={productName}
+                  onChangeText={setProductName}
+                />
+              </View>
+              <View style={{ width: 98 }}>
+                <Input
+                  label="ID EXTRA"
+                  placeholder="Opcional"
+                  value={productIdentifier}
+                  onChangeText={(text) =>
+                    setProductIdentifier(text.toUpperCase().slice(0, 2))
+                  }
+                  maxLength={2}
+                  inputStyle={{ textAlign: 'center' }}
+                />
+              </View>
             </View>
             <CategorySelect
               label="CATEGORIA*"

@@ -42,6 +42,29 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'center'
   },
   details: {},
+  imageWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  identifierOverlay: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 170,
+    backgroundColor: `rgba(59, 130, 246, 0.18)`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.green[100],
+    zIndex: 1,
+    opacity: 0.9
+  },
+  identifierText: {
+    color: colors.white,
+    fontSize: 14,
+    fontFamily: fontFamily.semiBold,
+    includeFontPadding: false
+  },
   swipeableContainer: {
     borderRadius: 8
   },
