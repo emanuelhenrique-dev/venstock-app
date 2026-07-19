@@ -379,7 +379,7 @@ export default function Cashier() {
                   icon={
                     filters.includes('withdrawal')
                       ? 'archive-arrow-down-outline'
-                      : 'cart-outline'
+                      : 'receipt-text-outline'
                   }
                   color={
                     filters.includes('withdrawal')
