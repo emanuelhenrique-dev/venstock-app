@@ -1,4 +1,5 @@
 import {
+  Alert,
   Text,
   TextInput,
   TextInputProps,
@@ -13,6 +14,7 @@ import { useState } from 'react';
 
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { CurrencyInput } from '../CurrencyInput';
+import { useCartStore } from '@/store/useCartStore';
 
 interface CartSummaryProps extends TextInputProps {
   type: 'sale' | 'withdrawal';
@@ -40,6 +42,8 @@ export function CartSummary({
 }: CartSummaryProps) {
   const [isEditingFee, setIsEditingFee] = useState(false);
 
+  const { clearCart } = useCartStore();
+
   const finalPrice = total + fee;
 
   const Icons: Record<string, any> = {
@@ -52,8 +56,58 @@ export function CartSummary({
     consumo: 'lunch-dining'
   };
 
+  function handleClearCart() {
+    Alert.alert(
+      'Limpar Carrinho',
+      'Tem certeza que deseja remover todos os produtos do carrinho?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Sim, limpar',
+          style: 'destructive',
+          onPress: () => {
+            try {
+              clearCart();
+            } catch (error) {
+              console.error('Erro ao limpar o carrinho:', error);
+              Alert.alert(
+                'Erro',
+                'Não foi possível limpar o carrinho. Tente novamente.'
+              );
+            }
+          }
+        }
+      ]
+    );
+  }
+
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        onPress={handleClearCart}
+        activeOpacity={0.6}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 4,
+          paddingVertical: 6,
+          paddingHorizontal: 8,
+          zIndex: 10
+        }}
+      >
+        <MaterialIcons name="delete-sweep" size={20} color={colors.gray[400]} />
+        <Text
+          style={{ color: colors.gray[400], fontSize: 12, fontWeight: '500' }}
+        >
+          Limpar
+        </Text>
+      </TouchableOpacity>
       <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={[styles.option, { backgroundColor: colors.green[400] }]}
