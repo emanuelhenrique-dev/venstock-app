@@ -33,7 +33,7 @@ const GATEWAY_TOKEN = process.env.EXPO_PUBLIC_MERCADO_PAGO_TOKEN || '';
 const hasToken = GATEWAY_TOKEN.trim().length > 0;
 
 export default function Cashier() {
-  const [activeTab, setActiveTab] = useState<'pix' | 'history'>('pix');
+  const [activeTab, setActiveTab] = useState<'pix' | 'history'>('history');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filters, setFilters] = useState<transactionType[]>(['sale']);
 
@@ -364,6 +364,30 @@ export default function Cashier() {
               contentContainerStyle={{
                 paddingBottom: insets.bottom + 120
               }}
+              ListEmptyComponent={
+                <EmptyComponent
+                  text={
+                    filters.includes('withdrawal')
+                      ? 'Nenhuma Retirada registrada'
+                      : 'Nenhuma Venda registrada'
+                  }
+                  subtext={
+                    filters.includes('withdrawal')
+                      ? 'As retiradas do estoque aparecerão aqui.'
+                      : 'As vendas efetuadas aparecerão aqui.'
+                  }
+                  icon={
+                    filters.includes('withdrawal')
+                      ? 'archive-arrow-down-outline'
+                      : 'cart-outline'
+                  }
+                  color={
+                    filters.includes('withdrawal')
+                      ? colors.blue[500]
+                      : colors.green[500]
+                  }
+                />
+              }
             />
           </View>
         )}
