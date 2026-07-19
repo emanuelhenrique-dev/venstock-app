@@ -234,19 +234,21 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-      setSelectedCategory(null);
+      // setSelectedCategory(null);
 
       setPeriodIndex(1);
     }, [])
   );
 
   // Roda quando os estados mudam OU quando a tela ganha foco
-  useFocusEffect(
-    useCallback(() => {
-      handleSearch();
+  useEffect(() => {
+    // Se houver uma busca ativa ou filtro de estoque ativo, limpa a categoria selecionada
+    if (searchQuery.trim() !== '' || isLowStockFilterActive) {
       setSelectedCategory(null);
-    }, [searchQuery, isLowStockFilterActive])
-  );
+    }
+
+    handleSearch();
+  }, [searchQuery, isLowStockFilterActive]);
 
   //Dispara a consulta ao banco apenas para o card toda vez que o periodIndex rodar
   useEffect(() => {
