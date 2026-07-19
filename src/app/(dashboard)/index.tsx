@@ -234,9 +234,11 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-      // setSelectedCategory(null);
 
+      // Força o reset para o período 1 (Últimos 7 dias)
+      // e já busca as vendas atualizadas desse período correto!
       setPeriodIndex(1);
+      loadPeriodSales(1);
     }, [])
   );
 
