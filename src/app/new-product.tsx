@@ -344,7 +344,7 @@ export default function ProductForm() {
                 label="ESTOQUE ATUAL*"
                 placeholder="00"
                 value={stock}
-                onChangeText={setStock}
+                onChangeText={(text) => setStock(text.replace(/\D/g, ''))}
                 keyboardType="numeric"
                 mini
               />
@@ -353,7 +353,7 @@ export default function ProductForm() {
                 label="ESTOQUE MÍNIMO"
                 placeholder="00"
                 value={minStock}
-                onChangeText={setMinStock}
+                onChangeText={(text) => setMinStock(text.replace(/\D/g, ''))}
                 keyboardType="numeric"
                 mini
               />
