@@ -189,14 +189,22 @@ export default function Cart() {
   // Função para auditar e corrigir o estoque do carrinho
   function validateAndAdjustCartStocks(formattedProducts: ProductCardProps[]) {
     const currentCartItems = useCartStore.getState().items;
-    let hasChanges = false; // 🟢 Controla se alguma alteração foi feita
+    let hasChanges = false; // Controla se alguma alteração foi feita
 
     currentCartItems.forEach((cartItem) => {
       const dbProduct = formattedProducts.find(
         (p) => String(p.id) === String(cartItem.productId)
       );
 
-      if (dbProduct) {
+      if (!dbProduct) {
+        removeItem(cartItem.id);
+        hasChanges = true;
+
+        Alert.alert(
+          'Item Não Disponível',
+          'Um dos produtos do seu carrinho não está mais disponível no sistema e foi removido.'
+        );
+      } else {
         //CASO 1: O estoque zerou completamente (Produto esgotado)
         if (dbProduct.qtdEstoque <= 0) {
           removeItem(cartItem.id); // Remove do carrinho automaticamente

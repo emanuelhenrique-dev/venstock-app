@@ -129,6 +129,37 @@ export default function ProductForm() {
     });
   }
 
+  async function handleRemove() {
+    if (!param.id || Array.isArray(param.id)) {
+      return;
+    }
+
+    Alert.alert('Remover', 'Deseja realmente remover este produto?', [
+      { text: 'não', style: 'cancel' },
+      {
+        text: 'sim',
+        style: 'destructive',
+        onPress: remove
+      }
+    ]);
+  }
+
+  async function remove() {
+    try {
+      setIsProcessing(true);
+
+      await productDatabase.removeProduct(Number(param.id));
+
+      Alert.alert('Remover Produto', 'Produto removido!', [
+        { text: 'Ok', onPress: () => router.replace('/') }
+      ]);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível remover o produto.');
+      console.log(error);
+      setIsProcessing(false);
+    }
+  }
+
   // Função para buscar as categorias do seletor
   async function fetchCategoriesOptions(): Promise<SelectedCategory[]> {
     try {
@@ -236,9 +267,7 @@ export default function ProductForm() {
                 param.id
                   ? {
                       icon: 'delete',
-                      onPress: () => {
-                        console.log('lixeira apertada para o id:', param.id);
-                      }
+                      onPress: () => handleRemove()
                     }
                   : undefined
               }

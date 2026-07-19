@@ -54,12 +54,4 @@ export async function migrate(database: SQLiteDatabase) {
     );
 
   `);
-
-  const productColumns = await database.getAllAsync<{ name: string }>(
-    `PRAGMA table_info(products)`
-  );
-
-  if (!productColumns.some((column) => column.name === 'identifier')) {
-    await database.execAsync(`ALTER TABLE products ADD COLUMN identifier TEXT`);
-  }
 }

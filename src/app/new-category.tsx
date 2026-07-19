@@ -91,7 +91,10 @@ export default function CategoryForm() {
         { text: 'Ok', onPress: () => router.replace('/') }
       ]);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível remover a Categoria.');
+      Alert.alert(
+        'Erro',
+        'Não foi possível remover a categoria. Verifique se a categoria está vazia.'
+      );
       console.log(error);
       setIsProcessing(false);
     }
