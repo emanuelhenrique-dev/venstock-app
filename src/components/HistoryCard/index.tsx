@@ -7,8 +7,8 @@ import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { styles } from './styles';
 import { GradientText } from '../GradientText';
-import { formatProjectDate } from '@/utils/formatterData';
-import { differenceInDays, parseISO, startOfDay } from 'date-fns';
+import { formatProjectDate, parseDatabaseDate } from '@/utils/formatterData';
+import { differenceInDays, startOfDay } from 'date-fns';
 import { useTransactionDatabase } from '@/database/useTransactionDatabase';
 import { CartItem, useCartStore } from '@/store/useCartStore';
 
@@ -71,7 +71,7 @@ export function HistoryCard({
   const canDeleteTransaction = (createdAtString: string): boolean => {
     try {
       // 1. Transforma a string do banco em uma data real de forma segura
-      const transactionDate = parseISO(createdAtString);
+      const transactionDate = parseDatabaseDate(createdAtString);
       const now = new Date();
 
       // 2. Compara o "começo do dia" de cada uma, ignorando minutos e segundos sumidos
