@@ -411,6 +411,13 @@ export function HistoryCard({
                     </Text>
                   )}
                 </View>
+                {data.value && data.type == 'sale' && data.description ? (
+                  <View style={[styles.descriptionRow, { borderTopWidth: 0 }]}>
+                    <Text style={[styles.footerText, { textAlign: 'center' }]}>
+                      Observações: {data.description}
+                    </Text>
+                  </View>
+                ) : null}
               </>
             )}
           </MotiView>

@@ -131,6 +131,12 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: colors.gray[300]
   },
+  descriptionRow: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderColor: colors.gray[300]
+  },
   footerText: {
     fontSize: 12,
     fontFamily: fontFamily.regular,
