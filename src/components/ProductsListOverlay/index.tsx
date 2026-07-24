@@ -18,7 +18,7 @@ import { styles } from './styles';
 import { ProductCard } from '../ProductCard';
 import { selectedCategoryProps } from '@/app/(dashboard)';
 import { CustomImage } from '../CustomImage';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCartStore } from '@/store/useCartStore';
 import { Loading } from '../Loading';
 import { ProductSkeleton } from '../ProductSkeleton';
@@ -128,9 +128,6 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
   // Só mostra a lista após a animação de entrada acabar (250ms)
   useEffect(() => {
     if (selectedCategory) {
-      // Dispara a busca no banco de dados imediatamente em paralelo
-      fetchData();
-
       // Ativa o renderizador após 200ms para casar com a transição do Moti
       const timer = setTimeout(() => setCanRenderList(true), 200);
       return () => clearTimeout(timer);
@@ -140,6 +137,15 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
       setProducts([]);
     }
   }, [selectedCategory]);
+
+  // Recarrega os produtos sempre que a tela voltar ao foco
+  useFocusEffect(
+    React.useCallback(() => {
+      if (selectedCategory) {
+        fetchData();
+      }
+    }, [selectedCategory])
+  );
 
   return (
     <AnimatePresence>
@@ -198,6 +204,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
             <List
               data={products}
               keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingBottom: 80 }}
               renderItem={({ item }) => {
                 //Buscamos se o produto já existe no carrinho
                 const cartItem = items.find(

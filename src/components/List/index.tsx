@@ -17,6 +17,7 @@ interface Props<T> extends FlatListProps<T> {
 
 export function List<T>({
   containerStyle,
+  contentContainerStyle,
   data,
   renderItem,
   ...rest
@@ -29,7 +30,7 @@ export function List<T>({
         ItemSeparatorComponent={() => (
           <Separator space={4} color={colors.gray[150]} />
         )}
-        contentContainerStyle={[styles.listContent]}
+        contentContainerStyle={[styles.listContent, contentContainerStyle]}
         showsVerticalScrollIndicator={false}
         {...rest}
       />
