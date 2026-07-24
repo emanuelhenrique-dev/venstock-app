@@ -307,7 +307,7 @@ export function CartSummary({
             </>
           ) : (
             <TextInput
-              placeholder="Escreva os detalhes do retiro (Opcional)..."
+              placeholder="Motivo ou detalhes (opcional). Será enviado se estiver preenchido no caso de venda."
               placeholderTextColor={colors.gray[200]}
               multiline
               style={styles.textInput}
@@ -319,7 +319,10 @@ export function CartSummary({
         <TouchableOpacity
           style={[
             styles.button,
-            { opacity: total <= 0 || disabled || isEditingFee ? 0.7 : 1 }
+            {
+              opacity: total <= 0 || disabled || isEditingFee ? 0.7 : 1,
+              marginTop: 6
+            }
           ]}
           activeOpacity={0.8}
           disabled={total <= 0 || disabled || isEditingFee}

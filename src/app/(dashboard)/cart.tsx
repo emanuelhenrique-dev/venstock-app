@@ -84,7 +84,7 @@ export default function Cart() {
     );
   }, [cartWithDetails]);
 
-  async function handleFinishOrder() {
+  async function finalizeOrder(useDescription: boolean) {
     if (cartWithDetails.length === 0) {
       Alert.alert('Aviso', 'Seu carrinho está vazio.');
       return;
@@ -118,7 +118,10 @@ export default function Cart() {
       await transactionDatabase.CreateTransaction({
         type: transactionType,
         category: currentMethod as any,
-        description: description.trim() || undefined,
+        description:
+          transactionType === 'sale' && !useDescription
+            ? undefined
+            : description.trim() || undefined,
         fee: fee,
         total: total,
         items: databaseItems
@@ -155,6 +158,34 @@ export default function Cart() {
       console.log('Erro ao finalizar pedido:', error);
       Alert.alert('Erro', 'Não foi possível concluir a transação.');
     }
+  }
+
+  function handleFinishOrder() {
+    if (cartWithDetails.length === 0) {
+      Alert.alert('Aviso', 'Seu carrinho está vazio.');
+      return;
+    }
+
+    if (transactionType === 'sale' && description.trim()) {
+      Alert.alert(
+        'Incluir descrição?',
+        `${description} . Deseja usar esta descrição na venda?`,
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+            onPress: () => finalizeOrder(false)
+          },
+          {
+            text: 'Sim',
+            onPress: () => finalizeOrder(true)
+          }
+        ]
+      );
+      return;
+    }
+
+    finalizeOrder(true);
   }
 
   async function RemoveProduct(id: string) {
