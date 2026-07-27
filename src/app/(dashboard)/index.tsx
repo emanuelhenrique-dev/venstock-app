@@ -46,7 +46,7 @@ export type selectedCategoryProps = {
 };
 
 export default function Index() {
-  const { user, notificationsEnabled } = useAuth();
+  const { user, notificationsEnabled, resetCategoryOnFocus } = useAuth();
   const [totalStock, setTotalStock] = useState('0');
   const [lowStockCount, setLowStockCount] = useState('0');
 
@@ -239,7 +239,10 @@ export default function Index() {
       // e já busca as vendas atualizadas desse período correto!
       setPeriodIndex(1);
       loadPeriodSales(1);
-    }, [])
+      if (resetCategoryOnFocus) {
+        setSelectedCategory(null);
+      }
+    }, [resetCategoryOnFocus])
   );
 
   // Roda quando os estados mudam OU quando a tela ganha foco

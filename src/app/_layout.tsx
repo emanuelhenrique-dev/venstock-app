@@ -71,6 +71,13 @@ export default function Layout() {
             }}
           />
           <Stack.Screen
+            name="settings"
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom'
+            }}
+          />
+          <Stack.Screen
             name="about"
             options={{
               presentation: 'modal',

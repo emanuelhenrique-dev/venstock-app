@@ -7,7 +7,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 
 export default function Settings() {
-  const { notificationsEnabled, toggleNotifications } = useAuth();
+  const {
+    notificationsEnabled,
+    resetCategoryOnFocus,
+    toggleNotifications,
+    toggleResetCategoryOnFocus
+  } = useAuth();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -42,6 +47,15 @@ export default function Settings() {
             isSwitch
             switchValue={notificationsEnabled}
             onSwitchChange={toggleNotifications}
+          />
+
+          <OptionCard
+            title="Resetar Categoria"
+            subtitle="Limpa a categoria selecionada na Home sempre que a tela ganhar foco."
+            icon="refresh"
+            isSwitch
+            switchValue={resetCategoryOnFocus}
+            onSwitchChange={toggleResetCategoryOnFocus}
           />
 
           {/* Espaço pronto para os próximos recursos de personalização */}

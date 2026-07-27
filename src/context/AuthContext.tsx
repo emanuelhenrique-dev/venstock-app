@@ -22,6 +22,7 @@ type AuthState = {
   isLoggedIn: boolean;
   loading: boolean;
   notificationsEnabled: boolean;
+  resetCategoryOnFocus: boolean;
   updateUser: (
     name: string,
     image: string | null,
@@ -34,6 +35,7 @@ type AuthState = {
   ) => Promise<void>;
   loggedOut: () => Promise<void>;
   toggleNotifications: (enabled: boolean) => Promise<void>;
+  toggleResetCategoryOnFocus: (enabled: boolean) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthState>({} as AuthState);
@@ -43,7 +45,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  //preferencias
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [resetCategoryOnFocus, setResetCategoryOnFocus] = useState(false);
 
   const router = useRouter();
   const { saveUserData, getUserData, clearUserData } = userStorage();
@@ -59,6 +63,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
         );
         setNotificationsEnabled(storedNotifications !== 'false');
 
+        //  Carrega a preferência de reset de categoria (padrão 'false' se não existir)
+        const storedResetCategory = await AsyncStorage.getItem(
+          '@venstock:reset_category'
+        );
+        setResetCategoryOnFocus(storedResetCategory === 'true');
+
         if (storedUser && storedUser.name) {
           setUser({
             name: storedUser.name ?? 'Usuário desconhecido',
@@ -68,7 +78,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setIsLoggedIn(true);
         }
       } catch (error) {
-        console.log('Erro ao carregar dados de autenticação:', error);
+        console.log('Erro ao carregar preferências:', error);
       } finally {
         setLoading(false); // Libera o app após checar
       }
@@ -83,6 +93,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser({ name, image, color });
   }
 
+  //ativar ou desativar notificações
   async function toggleNotifications(enabled: boolean) {
     setNotificationsEnabled(enabled);
     await AsyncStorage.setItem('@venstock:notifications', String(enabled));
@@ -91,6 +102,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // Se o usuário desativou, você já pode cancelar os agendamentos imediatamente!
     if (!enabled) {
       await localNotificationService.cancelAllNotifications();
+    }
+  }
+
+  //ativar ou desativar reset de categoria na pagina principal
+  async function toggleResetCategoryOnFocus(enabled: boolean) {
+    try {
+      setResetCategoryOnFocus(enabled);
+      await AsyncStorage.setItem('@venstock:reset_category', String(enabled));
+    } catch (error) {
+      console.log('Erro ao salvar preferência de reset de categoria:', error);
     }
   }
 
@@ -117,7 +138,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         isLoggedIn,
         loading,
         notificationsEnabled,
+        resetCategoryOnFocus,
         toggleNotifications,
+        toggleResetCategoryOnFocus,
         updateUser,
         loggedIn,
         loggedOut
