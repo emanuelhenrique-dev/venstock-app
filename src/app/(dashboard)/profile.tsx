@@ -24,8 +24,7 @@ type profile = {
 
 export default function User() {
   const { clearCart } = useCartStore();
-  const { user, loggedOut, notificationsEnabled, toggleNotifications } =
-    useAuth();
+  const { user, loggedOut } = useAuth();
 
   const insets = useSafeAreaInsets();
 
@@ -145,12 +144,10 @@ export default function User() {
           />
 
           <OptionCard
-            title="Permitir Notificações"
-            subtitle="Ex: Notificar quando os produtos estiverem em baixa."
-            icon="notifications-none"
-            isSwitch
-            switchValue={notificationsEnabled}
-            onSwitchChange={toggleNotifications}
+            title="Personalização e Ajustes"
+            subtitle="Notificações e preferências do aplicativo."
+            icon="tune" // ou "settings" / "palette" dependendo do seu pacote de ícones
+            onPress={() => router.navigate('/settings')}
           />
 
           <OptionCard
