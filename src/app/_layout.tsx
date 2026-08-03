@@ -59,6 +59,12 @@ export default function Layout() {
           <Stack.Screen
             name="new-product"
             options={{
+              presentation: 'modal'
+            }}
+          />
+          <Stack.Screen
+            name="product-page"
+            options={{
               presentation: 'modal',
               animation: 'slide_from_bottom'
             }}

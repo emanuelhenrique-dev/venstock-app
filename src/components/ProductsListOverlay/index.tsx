@@ -57,35 +57,6 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
 
   const ProductDatabase = useProductDatabase();
 
-  async function EditProduct(id: string) {
-    try {
-      Alert.alert('Editar', 'Realmente deseja editar esse produto?', [
-        {
-          text: 'não',
-          style: 'cancel',
-          onPress: () => {
-            console.warn('Cancelando editar produto', id);
-          }
-        },
-        {
-          text: 'sim',
-          style: 'destructive',
-          onPress: () => {
-            if (!selectedCategory) return;
-            console.warn('editar produto', id);
-
-            router.navigate(
-              `/new-product/?id=${id}&categoryId=${selectedCategory.id}&categoryName=${encodeURIComponent(selectedCategory.name)}`
-            );
-          }
-        }
-      ]);
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível editar o Produto');
-      console.log(error);
-    }
-  }
-
   async function fetchProductsByCategory(): Promise<ProductCardProps[]> {
     if (!selectedCategory?.id) {
       return [];
@@ -233,8 +204,9 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                       }
                     }}
                     leftAction={{
-                      icon: 'edit',
-                      onOpen: () => EditProduct(item.id)
+                      icon: 'remove-red-eye',
+                      onOpen: () =>
+                        router.navigate(`/product-page/?id=${item.id}`)
                     }}
                   />
                 );
