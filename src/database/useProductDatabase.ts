@@ -8,6 +8,7 @@ export type ProductCreate = {
   minEstoque: number;
   codBar?: string;
   identifier?: string;
+  description?: string;
   color: string; // Obrigatório para o produto agora
   imageUrl?: string; // Opcional
   category_id: number;
@@ -26,10 +27,13 @@ export type ProductResponse = {
   qtdVendidos: number;
   codBar?: string;
   identifier?: string;
+  description?: string;
   color: string;
   imageUrl?: string | null; // Pode vir nulo do banco se não tiver foto
   category_id: number;
   category_name: string;
+  category_image?: string;
+  category_color?: string;
   created_at: string;
 };
 
@@ -40,9 +44,9 @@ export function useProductDatabase() {
   async function create(data: ProductCreate) {
     const statement = await database.prepareAsync(`
       INSERT INTO products 
-        (name, price, quantity, min_stock, barcode, identifier, color, image_url, category_id)
+        (name, price, quantity, min_stock, barcode, identifier, description, color, image_url, category_id)
       VALUES
-        ($name, $price, $quantity, $min_stock, $barcode, $identifier, $color, $image_url, $category_id)
+        ($name, $price, $quantity, $min_stock, $barcode, $identifier, $description, $color, $image_url, $category_id)
     `);
 
     try {
@@ -53,6 +57,7 @@ export function useProductDatabase() {
         $min_stock: data.minEstoque,
         $barcode: data.codBar || null,
         $identifier: data.identifier?.trim() || null,
+        $description: data.description || null,
         $color: data.color,
         $image_url: data.imageUrl || null,
         $category_id: data.category_id
@@ -151,10 +156,13 @@ export function useProductDatabase() {
           0 AS qtdVendidos,          -- Fixado em 0 por enquanto
           p.barcode AS codBar,
           p.identifier AS identifier,
+          p.description,
           p.color,
           p.image_url AS imageUrl,
           p.category_id,
           c.name AS category_name,   -- Traz o nome da categoria associada
+          c.image_url AS category_image,
+          c.color AS category_color,
           p.created_at
         FROM products p
         INNER JOIN categories c ON c.id = p.category_id
