@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 2,
     paddingHorizontal: 8,
 
-    borderLeftWidth: 1,
+    borderLeftWidth: 2,
     borderColor: colors.red[500]
   },
   content: {

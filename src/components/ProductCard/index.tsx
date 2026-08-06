@@ -21,6 +21,7 @@ interface Props extends ViewProps {
   leftAction: {
     onOpen: () => void;
     icon: keyof typeof MaterialIcons.glyphMap;
+    color?: string;
   };
   variant?: ProductCardVariant;
   children?: ReactNode;
@@ -85,7 +86,13 @@ function ProductCardComponent({
 
   // O que vai aparecer atrás do card
   const renderLeftActions = () => (
-    <RectButton style={styles.option} activeOpacity={0.9}>
+    <RectButton
+      style={[
+        styles.option,
+        leftAction.color && { backgroundColor: leftAction.color }
+      ]}
+      activeOpacity={0.9}
+    >
       <MaterialIcons name={leftAction.icon} size={24} color="#fff" />
     </RectButton>
   );
@@ -101,7 +108,13 @@ function ProductCardComponent({
       onSwipeableWillOpen={handleSwipeable}
       ref={swipeableRef}
     >
-      <View style={styles.container} {...rest}>
+      <View
+        style={[
+          styles.container,
+          leftAction.color && { borderColor: leftAction.color }
+        ]}
+        {...rest}
+      >
         <TouchableOpacity
           style={styles.imageWrapper}
           activeOpacity={0.85}

@@ -206,7 +206,8 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
                     leftAction={{
                       icon: 'remove-red-eye',
                       onOpen: () =>
-                        router.navigate(`/product-page/?id=${item.id}`)
+                        router.navigate(`/product-page/?id=${item.id}`),
+                      color: colors.green[400]
                     }}
                   />
                 );
