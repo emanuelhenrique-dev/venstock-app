@@ -211,16 +211,35 @@ export default function Index() {
 
     setCategories(categoryData);
 
+    // Atualiza a categoria selecionada com os dados recentes do banco
+    setSelectedCategory((prevSelected) => {
+      if (!prevSelected) return null;
+
+      const updatedCategory = categoryData.find(
+        (cat) => cat.id === prevSelected.id
+      );
+
+      // Se a categoria tiver sido excluída durante a edição, fecha o overlay
+      if (!updatedCategory) return null;
+
+      return {
+        id: updatedCategory.id,
+        name: updatedCategory.name,
+        image: updatedCategory.imageUrl ?? null,
+        color: updatedCategory.color ?? null
+      };
+    });
+
     setLowStockCount(String(lowStockCountValue));
 
-    // 🟢 Soma o estoque total de todas as unidades
+    //  Soma o estoque total de todas as unidades
     const sumStock = categoryData.reduce(
       (acc, cat) => acc + (cat.qtdEstoque || 0),
       0
     );
     setTotalStock(String(sumStock));
 
-    // 🟢 Soma a quantidade de produtos diferentes cadastrados
+    //  Soma a quantidade de produtos diferentes cadastrados
     const sumUnique = categoryData.reduce(
       (acc, cat) => acc + (cat.qtdProdutosUnicos || 0),
       0
