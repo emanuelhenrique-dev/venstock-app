@@ -3,7 +3,8 @@ import axios from 'axios';
 const GATEWAY_TOKEN = process.env.EXPO_PUBLIC_MERCADO_PAGO_TOKEN;
 
 const gatewayAPI = axios.create({
-  baseURL: 'https://api.mercadopago.com'
+  baseURL: 'https://api.mercadopago.com',
+  timeout: 7000
 });
 
 export async function fetchGatewayPaymentsExtract() {
@@ -29,7 +30,7 @@ export async function fetchGatewayPaymentsExtract() {
 
     const results = response.data.results;
 
-    // 💡 CONTINGÊNCIA ATIVADA: Como o Sandbox retornou [], injetamos os dados para o app funcionar!
+    // CONTINGÊNCIA: Como o Sandbox retornou [], injetamos os dados para o app funcionar!
     if (!results || results.length === 0) {
       console.log(
         '⚠️ Sandbox retornou vazio. Injetando dados simulados com status_detail...'
