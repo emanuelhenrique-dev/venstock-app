@@ -8,7 +8,8 @@ import { ProductCardProps } from '../ProductsListOverlay';
 
 // Mudamos para a importação estável (sem o /Reanimated)
 import Swipeable, {
-  SwipeableMethods
+  SwipeableMethods,
+  SwipeDirection
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { RectButton, TextInput } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,13 +17,16 @@ import { Input } from '../Input';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 
 type ProductCardVariant = 'stock' | 'sale' | 'withdrawal';
+
+type SwipeAction = {
+  onOpen: () => void;
+  icon: keyof typeof MaterialIcons.glyphMap;
+  color?: string;
+};
 interface Props extends ViewProps {
   data: ProductCardProps;
-  leftAction: {
-    onOpen: () => void;
-    icon: keyof typeof MaterialIcons.glyphMap;
-    color?: string;
-  };
+  leftAction: SwipeAction;
+  rightAction?: SwipeAction;
   variant?: ProductCardVariant;
   children?: ReactNode;
 
@@ -33,6 +37,7 @@ interface Props extends ViewProps {
 function ProductCardComponent({
   data,
   leftAction,
+  rightAction,
   variant = 'stock',
   children,
   quantity,
@@ -45,9 +50,17 @@ function ProductCardComponent({
 
   const isLowStock = data.qtdEstoque <= data.minStock;
 
-  async function handleSwipeable() {
+  async function handleSwipeable(direction: SwipeDirection) {
+    console.log(direction);
     swipeableRef.current?.close();
-    await leftAction.onOpen();
+
+    // SwipeDirection.RIGHT -> Puxou para a direita (revela o lado esquerdo)
+    if (direction === SwipeDirection.RIGHT) {
+      await leftAction.onOpen();
+    } // SwipeDirection.LEFT -> Puxou para a esquerda (revela o lado direito)
+    else if (direction === SwipeDirection.LEFT && rightAction) {
+      await rightAction.onOpen();
+    }
   }
 
   function clearIdentifierTimer() {
@@ -97,15 +110,34 @@ function ProductCardComponent({
     </RectButton>
   );
 
+  // Renderiza a ação da Direita
+  const renderRightActions = () => {
+    if (!rightAction) return null;
+    return (
+      <View
+        style={[
+          styles.option,
+          rightAction.color && { backgroundColor: rightAction.color }
+        ]}
+      >
+        <MaterialIcons name={rightAction.icon} size={24} color="#fff" />
+      </View>
+    );
+  };
+
   return (
     <Swipeable
       renderLeftActions={renderLeftActions}
+      renderRightActions={rightAction ? renderRightActions : undefined}
       overshootLeft={false}
+      overshootRight={false}
       dragOffsetFromLeftEdge={40}
+      dragOffsetFromRightEdge={60}
       leftThreshold={50}
+      rightThreshold={50}
       containerStyle={styles.swipeableContainer}
       activeOffsetX={[-10, 10]}
-      onSwipeableWillOpen={handleSwipeable}
+      onSwipeableWillOpen={(direction) => handleSwipeable(direction)}
       ref={swipeableRef}
     >
       <View

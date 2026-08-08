@@ -21,7 +21,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { colors, fontFamily } from '@/theme';
 import { numberToCurrency } from '@/utils/numberToCurrency';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
@@ -353,6 +353,12 @@ export default function Cart() {
                     leftAction={{
                       icon: 'delete',
                       onOpen: () => RemoveProduct(item.cartId)
+                    }}
+                    rightAction={{
+                      icon: 'remove-red-eye',
+                      onOpen: () =>
+                        router.navigate(`/product-page/?id=${item.product.id}`),
+                      color: colors.green[400]
                     }}
                   >
                     <View
