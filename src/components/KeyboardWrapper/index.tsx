@@ -41,6 +41,7 @@ export function KeyboardWrapper({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={flexToggle ? { flexGrow: 1 } : { flex: 1 }}
       enabled={!flexToggle}
+      keyboardVerticalOffset={15}
     >
       {scrollView ? (
         <ScrollView

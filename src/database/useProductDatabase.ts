@@ -238,6 +238,7 @@ export function useProductDatabase() {
           min_stock = ?, 
           barcode = ?, 
           identifier = ?,
+          description = ?,
           color = ?, 
           image_url = ?, 
           category_id = ?
@@ -250,6 +251,7 @@ export function useProductDatabase() {
           data.minEstoque,
           data.codBar || null,
           data.identifier?.trim() || null,
+          data.description || null,
           data.color,
           data.imageUrl || null,
           data.category_id,

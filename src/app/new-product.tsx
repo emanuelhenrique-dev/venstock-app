@@ -9,7 +9,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { colors } from '@/theme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScannerButton } from '@/components/ScannerButton';
@@ -35,6 +35,7 @@ export default function ProductForm() {
   const [categoriesOptions, setCategoriesOptions] = useState<
     SelectedCategory[]
   >([]);
+  const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(colors.green[500]);
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState('');
@@ -105,6 +106,7 @@ export default function ProductForm() {
       minEstoque: minStockNumber,
       codBar: codBar.trim() || undefined, // Se estiver vazio, envia undefined (salva nulo no banco)
       identifier: productIdentifier.trim() || undefined,
+      description: description,
       color: selectedColor,
       imageUrl: productImage ?? undefined,
       category_id: Number(selectedCategory?.id)
@@ -123,6 +125,7 @@ export default function ProductForm() {
       minEstoque: minStockNumber,
       codBar: codBar.trim() || undefined,
       identifier: productIdentifier.trim() || undefined,
+      description: description,
       color: selectedColor,
       imageUrl: productImage ?? undefined,
       category_id: Number(selectedCategory?.id)
@@ -214,6 +217,7 @@ export default function ProductForm() {
         setMinStock(String(productData.minEstoque));
         setCodBar(productData.codBar ?? '');
         setProductIdentifier(productData.identifier ?? '');
+        setDescription(productData.description ?? '');
         setSelectedColor(productData.color);
         setProductImage(productData.imageUrl ?? null);
 
@@ -250,122 +254,161 @@ export default function ProductForm() {
         }}
         edges={['bottom']}
       >
-        <KeyboardWrapper>
-          <View>
-            <PageHeader
-              title1={param.id ? 'Editar' : 'Novo'}
-              title2="Produto"
-              subtitle={
-                param.id
-                  ? 'Atualize as informações deste produto.'
-                  : 'Configure os detalhes do novo produto.'
-              }
-              gradient={[colors.green[400], colors.green[500]]}
-              back
-              loading={isProcessing}
-              button={
-                param.id
-                  ? {
-                      icon: 'delete',
-                      onPress: () => handleRemove()
-                    }
-                  : undefined
-              }
-            />
-          </View>
-
-          <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
-            <ImageInput
-              imageUri={productImage}
-              onChangeImage={setProductImage}
-              color1={selectedColor}
-              color2={selectedColor}
-              variant="category"
-            />
-            <View
-              style={{
-                flexDirection: 'row',
-                width: '100%',
-                alignItems: 'flex-start',
-                gap: 12
-              }}
-            >
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Input
-                  label="NOME DO PRODUTO*"
-                  placeholder="Digite o nome do produto"
-                  value={productName}
-                  onChangeText={setProductName}
-                />
-              </View>
-              <View style={{ width: 98 }}>
-                <Input
-                  label="ID EXTRA"
-                  placeholder="Opcional"
-                  value={productIdentifier}
-                  onChangeText={(text) =>
-                    setProductIdentifier(text.toUpperCase().slice(0, 2))
+        <View style={{ flex: 1 }}>
+          <KeyboardWrapper scrollView={false}>
+            <View style={{ flex: 1 }}>
+              <View>
+                <PageHeader
+                  title1={param.id ? 'Editar' : 'Novo'}
+                  title2="Produto"
+                  subtitle={
+                    param.id
+                      ? 'Atualize as informações deste produto.'
+                      : 'Configure os detalhes do novo produto.'
                   }
-                  maxLength={2}
-                  inputStyle={{ textAlign: 'center' }}
+                  gradient={[colors.green[400], colors.green[500]]}
+                  back
+                  loading={isProcessing}
+                  button={
+                    param.id
+                      ? {
+                          icon: 'delete',
+                          onPress: () => handleRemove()
+                        }
+                      : undefined
+                  }
                 />
               </View>
-            </View>
-            <CategorySelect
-              label="CATEGORIA*"
-              options={categoriesOptions}
-              selectedCategory={selectedCategory}
-              onSelect={setSelectedCategory}
-            />
-            <View style={{ flexDirection: 'row', gap: 30 }}>
-              <CurrencyInput
-                label="PREÇO DE VENDA*"
-                value={price}
-                onChangeValue={(value) => setPrice(value ?? 0)}
-                mini
-              />
-              <Input
-                label="CODIGO DO PRODUTO"
-                placeholder="######"
-                value={codBar}
-                onChangeText={setCodBar}
-                mini
-              >
-                <ScannerButton
-                  onScanResult={(codigo) => {
-                    setCodBar(codigo);
-                    console.log('Produto escaneado:', codigo);
-                  }}
+
+              <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
+                <ImageInput
+                  imageUri={productImage}
+                  onChangeImage={setProductImage}
+                  color1={selectedColor}
+                  color2={selectedColor}
+                  variant="category"
                 />
-              </Input>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 30, width: '100%' }}>
-              <Input
-                label="ESTOQUE ATUAL*"
-                placeholder="00"
-                value={stock}
-                onChangeText={(text) => setStock(text.replace(/\D/g, ''))}
-                keyboardType="numeric"
-                mini
-              />
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingBottom: 60,
+                    gap: 10
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      width: '100%',
+                      alignItems: 'flex-start',
+                      gap: 12
+                    }}
+                  >
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Input
+                        label="NOME DO PRODUTO*"
+                        placeholder="Digite o nome do produto"
+                        value={productName}
+                        onChangeText={setProductName}
+                      />
+                    </View>
+                    <View style={{ width: 98 }}>
+                      <Input
+                        label="ID EXTRA"
+                        placeholder="Opcional"
+                        value={productIdentifier}
+                        onChangeText={(text) =>
+                          setProductIdentifier(text.toUpperCase().slice(0, 2))
+                        }
+                        maxLength={2}
+                        inputStyle={{ textAlign: 'center' }}
+                      />
+                    </View>
+                  </View>
+                  <CategorySelect
+                    label="CATEGORIA*"
+                    options={categoriesOptions}
+                    selectedCategory={selectedCategory}
+                    onSelect={setSelectedCategory}
+                  />
+                  <View style={{ flexDirection: 'row', gap: 30 }}>
+                    <CurrencyInput
+                      label="PREÇO DE VENDA*"
+                      value={price}
+                      onChangeValue={(value) => setPrice(value ?? 0)}
+                      mini
+                    />
+                    <Input
+                      label="CODIGO DO PRODUTO"
+                      placeholder="######"
+                      value={codBar}
+                      onChangeText={setCodBar}
+                      mini
+                    >
+                      <ScannerButton
+                        onScanResult={(codigo) => {
+                          setCodBar(codigo);
+                          console.log('Produto escaneado:', codigo);
+                        }}
+                      />
+                    </Input>
+                  </View>
+                  <View
+                    style={{ flexDirection: 'row', gap: 30, width: '100%' }}
+                  >
+                    <Input
+                      label="ESTOQUE ATUAL*"
+                      placeholder="00"
+                      value={stock}
+                      onChangeText={(text) => setStock(text.replace(/\D/g, ''))}
+                      keyboardType="numeric"
+                      mini
+                    />
 
-              <Input
-                label="ESTOQUE MÍNIMO"
-                placeholder="00"
-                value={minStock}
-                onChangeText={(text) => setMinStock(text.replace(/\D/g, ''))}
-                keyboardType="numeric"
-                mini
-              />
-            </View>
+                    <Input
+                      label="ESTOQUE MÍNIMO"
+                      placeholder="00"
+                      value={minStock}
+                      onChangeText={(text) =>
+                        setMinStock(text.replace(/\D/g, ''))
+                      }
+                      keyboardType="numeric"
+                      mini
+                    />
+                  </View>
 
-            <ColorInput
-              label="COR DA CATEGORIA"
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
-            />
-          </View>
-          <View style={{ marginTop: 18, width: '100%' }}>
+                  <Input
+                    label="DESCRIÇÃO DO PRODUTO"
+                    placeholder="Opcional"
+                    value={description}
+                    onChangeText={setDescription}
+                    style={{
+                      width: '100%',
+                      minHeight: 60,
+                      height: '100%',
+                      fontSize: 16,
+                      textAlign: 'left',
+                      textAlignVertical: 'top'
+                    }}
+                    multiline
+                    numberOfLines={3}
+                  />
+                  <ColorInput
+                    label="COR DA CATEGORIA"
+                    selectedColor={selectedColor}
+                    setSelectedColor={setSelectedColor}
+                  />
+                </ScrollView>
+              </View>
+            </View>
+          </KeyboardWrapper>
+
+          <View
+            style={{
+              width: '100%',
+              marginBottom: 30,
+              backgroundColor: colors.white
+            }}
+          >
             <Button
               text={param.id ? 'Salvar Mudanças' : 'Adicionar Produto'}
               color1={colors.green[400]}
@@ -374,7 +417,7 @@ export default function ProductForm() {
               isProcessing={isProcessing}
             />
           </View>
-        </KeyboardWrapper>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
