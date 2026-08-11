@@ -30,8 +30,11 @@ export default function ProductPage() {
   const [product, setProduct] = useState<ProductResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { items, addItem, updateQuantity, removeItem, clearCart } =
-    useCartStore();
+  // input de numero de produto a adicionar
+  const [quantityAdd, setQuantityAdd] = useState('1');
+  const [openInput, setOpenInput] = useState(false);
+
+  const { items, addItem, updateQuantity, removeItem } = useCartStore();
 
   // Busca o item atual no carrinho
   const cartItem = items.find((item) => item.productId === id);
@@ -46,6 +49,50 @@ export default function ProductPage() {
 
     router.navigate(
       `/new-product/?id=${product.id}&categoryId=${product.category_id}&categoryName=${categoryNameEncoded}`
+    );
+  }
+
+  async function handleConfirmAddStock() {
+    const addedAmount = Number(quantityAdd);
+
+    if (isNaN(addedAmount) || addedAmount <= 0) {
+      Alert.alert('Quantidade inválida', 'Informe um valor maior que zero.');
+      return;
+    }
+
+    if (!product) return;
+
+    Alert.alert(
+      'Confirmar entrada',
+      `Deseja realmente adicionar ${addedAmount} unidade(s) ao estoque de ${product.name}?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            try {
+              // TODO: Chamar sua nova função do banco aqui quando implementar
+              // await productDatabase.addStock(product.id, addedAmount);
+
+              // Atualiza o estoque no estado local
+              setProduct((prev) =>
+                prev
+                  ? { ...prev, qtdEstoque: prev.qtdEstoque + addedAmount }
+                  : null
+              );
+
+              setOpenInput(false);
+              setQuantityAdd('1');
+              Alert.alert('Sucesso', 'Estoque atualizado!');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível atualizar o estoque.');
+            }
+          }
+        }
+      ]
     );
   }
 
@@ -153,7 +200,8 @@ export default function ProductPage() {
         ) : (
           <View style={{ flex: 1, paddingHorizontal: 24 }}>
             <View style={{ alignItems: 'center' }}>
-              <View style={{ position: 'relative' }}>
+              {/* CONTAINER FIXO DA IMAGEM */}
+              <View style={{ position: 'relative', width: 200, height: 200 }}>
                 <CustomImage
                   image={product?.imageUrl || null}
                   size={200}
@@ -161,35 +209,138 @@ export default function ProductPage() {
                   variant="product"
                 />
 
-                <TouchableOpacity
-                  onPress={() =>
-                    console.log('Cliquei na em adicionar produto no estoque')
-                  }
-                  activeOpacity={0.8}
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    backgroundColor: product
-                      ? product.color
-                      : colors.green[500],
-                    width: 61,
-                    height: 61,
-                    borderRadius: 170,
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}
-                >
-                  <MaterialIcons
-                    name="add"
-                    size={32}
-                    color={
-                      product?.color?.toLowerCase() !== '#ffffff'
-                        ? colors.white
-                        : colors.black
-                    }
-                  />
-                </TouchableOpacity>
+                {/* BOTÃO FLUTUANTE DE ABRIR */}
+                {!openInput && (
+                  <TouchableOpacity
+                    onPress={() => setOpenInput(true)}
+                    activeOpacity={0.8}
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: product
+                        ? product.color
+                        : colors.green[500],
+                      width: 61,
+                      height: 61,
+                      borderRadius: 170,
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <MaterialIcons
+                      name="add"
+                      size={32}
+                      color={
+                        product?.color?.toLowerCase() !== '#ffffff'
+                          ? colors.white
+                          : colors.black
+                      }
+                    />
+                  </TouchableOpacity>
+                )}
+
+                {/* CARD/OVERLAY SOBRE A IMAGEM */}
+                {openInput && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: 24,
+                      padding: 6,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: product?.color || colors.gray[200],
+                      elevation: 4,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: fontFamily.bold,
+                        fontSize: 14,
+                        color: colors.black,
+                        marginBottom: 8
+                      }}
+                    >
+                      Quantidade a adicionar
+                    </Text>
+
+                    <TextInput
+                      style={{
+                        borderWidth: 1,
+                        borderColor: colors.gray[300],
+                        borderRadius: 8,
+                        width: '80%',
+                        height: 60,
+                        textAlign: 'center',
+                        fontSize: 22,
+                        fontFamily: fontFamily.bold,
+                        color: colors.black,
+                        backgroundColor: colors.white,
+                        marginBottom: 16,
+                        includeFontPadding: false
+                      }}
+                      keyboardType="numeric"
+                      value={quantityAdd}
+                      onChangeText={setQuantityAdd}
+                      autoFocus
+                      selectTextOnFocus
+                    />
+
+                    <View style={{ flexDirection: 'row', gap: 16 }}>
+                      {/* BOTÃO CANCELAR */}
+                      <TouchableOpacity
+                        onPress={() => setOpenInput(false)}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          backgroundColor: colors.red[500],
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <MaterialIcons
+                          name="close"
+                          size={20}
+                          color={colors.white}
+                        />
+                      </TouchableOpacity>
+
+                      {/* BOTÃO CONFIRMAR */}
+                      <TouchableOpacity
+                        onPress={handleConfirmAddStock}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          backgroundColor: colors.green[500],
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <MaterialIcons
+                          name="check"
+                          size={22}
+                          color={
+                            product?.color?.toLowerCase() !== '#ffffff'
+                              ? colors.white
+                              : colors.black
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
             </View>
             <View style={{ flex: 1, position: 'relative' }}>
