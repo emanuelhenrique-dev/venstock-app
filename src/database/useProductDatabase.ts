@@ -266,6 +266,25 @@ export function useProductDatabase() {
     }
   }
 
+  // atualizar apenas a quantidade em estoque de um produto especifico
+  async function addStock(id: number, amount: number) {
+    try {
+      const result = await database.runAsync(
+        `
+      UPDATE products 
+      SET quantity = quantity + ? 
+      WHERE id = ?
+    `,
+        [amount, id]
+      );
+
+      return result.changes;
+    } catch (error) {
+      console.log(`Erro ao adicionar estoque ao produto ${id}:`, error);
+      throw error;
+    }
+  }
+
   // Remover Produto
   async function removeProduct(id: number) {
     try {
@@ -336,6 +355,7 @@ export function useProductDatabase() {
     create,
     searchAll,
     updateProduct,
+    addStock,
     removeProduct,
     getLowStockProducts,
     getLowStockCount

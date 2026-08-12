@@ -74,8 +74,7 @@ export default function ProductPage() {
           text: 'Confirmar',
           onPress: async () => {
             try {
-              // TODO: Chamar sua nova função do banco aqui quando implementar
-              // await productDatabase.addStock(product.id, addedAmount);
+              await productDatabase.addStock(product.id, addedAmount);
 
               // Atualiza o estoque no estado local
               setProduct((prev) =>
