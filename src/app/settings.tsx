@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { PageHeader } from '@/components/PageHeader';
 import { OptionCard } from '@/components/OptionCard';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 
 export default function Settings() {
+  const router = useRouter();
   const {
     notificationsEnabled,
     resetCategoryOnFocus,
@@ -56,6 +58,13 @@ export default function Settings() {
             isSwitch
             switchValue={resetCategoryOnFocus}
             onSwitchChange={toggleResetCategoryOnFocus}
+          />
+
+          <OptionCard
+            title="Importar & Exportar"
+            subtitle="Faça backup ou importe dados de categorias e produtos."
+            icon="file-download"
+            onPress={() => router.push('/import-export')}
           />
 
           {/* Espaço pronto para os próximos recursos de personalização */}
