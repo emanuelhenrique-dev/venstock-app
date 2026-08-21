@@ -23,6 +23,9 @@ export type CreateTransactionDTO = {
   description?: string;
   fee: number;
   total: number; //total sem fee
+  //esses 2 existem por causa da importação/exportação
+  created_at?: string;
+  user_name?: string;
   items: TransactionItem[];
 };
 
@@ -57,7 +60,12 @@ export function useTransactionDatabase() {
 
   const { user } = useAuth();
 
-  async function CreateTransaction(data: CreateTransactionDTO) {
+  async function CreateTransaction(
+    data: CreateTransactionDTO,
+    options?: { isImport?: boolean }
+  ) {
+    const isImport = options?.isImport ?? false;
+
     // withTransactionAsync para garantir que se QUALQUER query falhar,
     // o SQLite desfaz tudo (Rollback) e não quebra o histórico.
     await database.withTransactionAsync(async () => {
@@ -66,22 +74,31 @@ export function useTransactionDatabase() {
       const finalFee = isSale ? data.fee : 0.0;
       const finalTotal = data.total + data.fee;
 
-      const userName = user?.name || 'Admin';
+      const userName = data.user_name || user?.name || 'Desconhecido';
 
       const statement = await database.prepareAsync(
-        `INSERT INTO transactions (type, category, description, fee_value, total_value, user_name)
-          VALUES (?, ?, ?, ?, ?, ?)`
+        data.created_at
+          ? `INSERT INTO transactions (type, category, description, fee_value, total_value, user_name, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`
+          : `INSERT INTO transactions (type, category, description, fee_value, total_value, user_name)
+            VALUES (?, ?, ?, ?, ?, ?)`
       );
 
       try {
-        const transactionResult = await statement.executeAsync([
+        const parameters = [
           data.type,
           data.category,
           data.description || null,
           finalFee,
           finalTotal,
           userName
-        ]);
+        ];
+
+        if (data.created_at) {
+          parameters.push(data.created_at);
+        }
+
+        const transactionResult = await statement.executeAsync(parameters);
 
         // Recupera o ID gerado automaticamente para esta transação
         const newTransactionId = transactionResult.lastInsertRowId;
@@ -97,14 +114,13 @@ export function useTransactionDatabase() {
           );
 
           // Atualiza o estoque do produto na tabela 'products'
-          await database.runAsync(
-            `
-            UPDATE products
-             SET quantity = quantity - ?
-             WHERE id = ?
-            `,
-            [item.quantity, item.id]
-          );
+          // Só altera o estoque se for uma venda normal no PDV
+          if (!isImport) {
+            await database.runAsync(
+              `UPDATE products SET quantity = quantity - ? WHERE id = ?`,
+              [item.quantity, item.id]
+            );
+          }
         }
       } catch (error) {
         throw error;
@@ -188,6 +204,12 @@ export function useTransactionDatabase() {
     });
   }
 
+  async function deleteAllTransactions() {
+    await database.withTransactionAsync(async () => {
+      await database.runAsync(`DELETE FROM transactions`);
+    });
+  }
+
   // BUSCA O RESUMO DE PRODUTOS VENDIDOS POR PERÍODO
   async function getSalesSummaryByPeriod(
     period: SummaryPeriod
@@ -252,6 +274,7 @@ export function useTransactionDatabase() {
     CreateTransaction,
     getTransactions,
     deleteTransaction,
+    deleteAllTransactions,
     getSalesSummaryByPeriod
   };
 }

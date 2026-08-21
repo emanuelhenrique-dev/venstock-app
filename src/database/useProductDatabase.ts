@@ -85,6 +85,7 @@ export function useProductDatabase() {
         0 AS qtdVendidos,
         p.barcode AS codBar,
         p.identifier AS identifier,
+        p.description,
         p.color,
         p.image_url AS imageUrl,
         p.category_id,

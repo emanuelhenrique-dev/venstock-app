@@ -140,7 +140,7 @@ export default function ImportExportScreen() {
             color: prod.color || '#007AFF',
             category_id: newCatId,
             codBar: prod.codBar ?? prod.barcode ?? '',
-            imageUrl: prod.imageUrl ?? prod.image_url ?? prod.imageUri ?? '',
+            imageUrl: '',
             description: prod.description ?? '',
             identifier: prod.identifier ?? ''
           });
@@ -153,23 +153,31 @@ export default function ImportExportScreen() {
         data.transactions &&
         Array.isArray(data.transactions)
       ) {
+        //apagar todas transações existentes
+        await transactionDb.deleteAllTransactions();
+
         for (const tx of data.transactions as any[]) {
           if (typeof transactionDb.CreateTransaction === 'function') {
-            await transactionDb.CreateTransaction({
-              type: tx.type || 'sale',
-              category: tx.category || 'money',
-              description: tx.description ?? '',
-              fee: tx.fee ?? 0,
-              total: tx.total ?? tx.amount ?? 0,
-              items: Array.isArray(tx.items)
-                ? tx.items.map((item: any) => ({
-                    id: Number(item.id ?? 0),
-                    name: item.name ?? '',
-                    price: item.price ?? 0,
-                    quantity: item.quantity ?? item.qtd ?? 1
-                  }))
-                : []
-            });
+            await transactionDb.CreateTransaction(
+              {
+                type: tx.type || 'sale',
+                category: tx.category || 'money',
+                description: tx.description ?? '',
+                fee: tx.fee ?? 0,
+                total: tx.total ?? tx.amount ?? 0,
+                created_at: tx.date || tx.created_at || tx.createdAt || null,
+                user_name: tx.user_name || null,
+                items: Array.isArray(tx.items)
+                  ? tx.items.map((item: any) => ({
+                      id: Number(item.id ?? 0),
+                      name: item.name ?? '',
+                      price: item.price ?? 0,
+                      quantity: item.quantity ?? item.qtd ?? 1
+                    }))
+                  : []
+              },
+              { isImport: true }
+            );
           }
         }
       }
