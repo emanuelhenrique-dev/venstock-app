@@ -2,13 +2,9 @@ import CustomTabBar from '@/components/CustomTabBar';
 
 import { colors } from '@/theme';
 import { Redirect, Tabs } from 'expo-router';
-import { useEffect } from 'react';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Serviços e Stores
-import { localNotificationService } from '@/services/local-notifications.service';
 
 // Hooks
 import { useCartReminder } from '@/hooks/useCartReminder';
