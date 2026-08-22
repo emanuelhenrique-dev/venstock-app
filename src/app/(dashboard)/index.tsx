@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -100,6 +101,32 @@ export default function Index() {
   function handleToggleStockMode() {
     setShowUniqueProducts((prev) => !prev);
   }
+
+  // Função isolada para tratar o botão de voltar
+  const handleBackPress = useCallback(() => {
+    // Se houver uma categoria selecionada, limpa e bloqueia a saída
+    if (selectedCategory !== null) {
+      console.log('teste aqui');
+      setSelectedCategory(null);
+      return true;
+    }
+
+    // Se já for null, pergunta se quer fechar o app
+    Alert.alert(
+      'Sair do App',
+      'Você tem certeza que deseja fechar o aplicativo?',
+      [
+        { text: 'Cancelar', style: 'cancel', onPress: () => {} },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: () => BackHandler.exitApp()
+        }
+      ]
+    );
+
+    return true;
+  }, [selectedCategory]); // Monitora o estado para ter o valor atualizado
 
   async function fetchCategories(): Promise<CategoryCardProps[]> {
     try {
@@ -261,7 +288,18 @@ export default function Index() {
       if (resetCategoryOnFocus) {
         setSelectedCategory(null);
       }
-    }, [resetCategoryOnFocus])
+
+      // --- Forma moderna de registrar o BackHandler ---
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBackPress
+      );
+
+      // Cleanup: Cancela a inscrição usando o .remove()
+      return () => {
+        subscription.remove();
+      };
+    }, [resetCategoryOnFocus, handleBackPress])
   );
 
   // Roda quando os estados mudam OU quando a tela ganha foco
