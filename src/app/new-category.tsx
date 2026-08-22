@@ -122,68 +122,66 @@ export default function CategoryForm() {
   }, [param.id]);
 
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: colors.white,
-          paddingHorizontal: 22,
-          paddingTop: 22
-        }}
-        edges={['bottom']}
-      >
-        <View>
-          <PageHeader
-            title1={param.id ? 'Editar' : 'Nova'}
-            title2="Categoria"
-            subtitle={
-              param.id
-                ? 'Atualize as informações deste grupo de produtos.'
-                : 'Configure um novo grupo de produtos.'
-            }
-            gradient={[colors.blue[400], colors.blue[500]]}
-            back
-            button={
-              param.id
-                ? {
-                    icon: 'delete',
-                    onPress: () => handleRemove()
-                  }
-                : undefined
-            }
-          />
-        </View>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: colors.white,
+        paddingHorizontal: 22,
+        paddingTop: 22
+      }}
+      edges={['bottom']}
+    >
+      <View>
+        <PageHeader
+          title1={param.id ? 'Editar' : 'Nova'}
+          title2="Categoria"
+          subtitle={
+            param.id
+              ? 'Atualize as informações deste grupo de produtos.'
+              : 'Configure um novo grupo de produtos.'
+          }
+          gradient={[colors.blue[400], colors.blue[500]]}
+          back
+          button={
+            param.id
+              ? {
+                  icon: 'delete',
+                  onPress: () => handleRemove()
+                }
+              : undefined
+          }
+        />
+      </View>
 
-        <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
-          <ImageInput
-            imageUri={categoryImage}
-            onChangeImage={setCategoryImage}
-            color1={selectedColor}
-            color2={selectedColor}
-            variant="category"
-          />
-          <Input
-            label="NOME DA CATEGORIA*"
-            placeholder="Ex: Gelados"
-            value={categoryName}
-            onChangeText={setCategoryName}
-          />
-          <ColorInput
-            label="COR DA CATEGORIA"
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-          />
-        </View>
-        <View style={{ marginVertical: 10, width: '100%' }}>
-          <Button
-            text={param.id ? 'Salvar Mudanças' : 'Criar nova Categoria'}
-            color1={colors.blue[400]}
-            color2={colors.blue[500]}
-            onPress={handleSave}
-            isProcessing={isProcessing}
-          />
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+      <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
+        <ImageInput
+          imageUri={categoryImage}
+          onChangeImage={setCategoryImage}
+          color1={selectedColor}
+          color2={selectedColor}
+          variant="category"
+        />
+        <Input
+          label="NOME DA CATEGORIA*"
+          placeholder="Ex: Gelados"
+          value={categoryName}
+          onChangeText={setCategoryName}
+        />
+        <ColorInput
+          label="COR DA CATEGORIA"
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
+        />
+      </View>
+      <View style={{ marginVertical: 10, width: '100%' }}>
+        <Button
+          text={param.id ? 'Salvar Mudanças' : 'Criar nova Categoria'}
+          color1={colors.blue[400]}
+          color2={colors.blue[500]}
+          onPress={handleSave}
+          isProcessing={isProcessing}
+        />
+      </View>
+    </SafeAreaView>
   );
 }

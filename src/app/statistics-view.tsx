@@ -246,102 +246,142 @@ export default function Statistics() {
   }, [selectedPeriod.key]);
 
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.white }}>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: colors.white,
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: colors.white,
 
-          paddingTop: 22
-        }}
-        edges={['bottom']}
-      >
-        <View>
-          <PageHeader
-            title1="Minhas"
-            title2="Estatísticas"
-            subtitle={getSubtitleText()}
-            gradient={[colors.green[400], colors.green[500]]}
-            back
-            style={{ paddingHorizontal: 24, paddingBottom: 16 }}
-          />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              gap: 8,
-              height: 40,
-              alignItems: 'center'
-            }}
-          >
-            {PERIODS.map((period) => {
-              const isActive = selectedPeriod.key === period.key;
+        paddingTop: 22
+      }}
+      edges={['bottom']}
+    >
+      <View>
+        <PageHeader
+          title1="Minhas"
+          title2="Estatísticas"
+          subtitle={getSubtitleText()}
+          gradient={[colors.green[400], colors.green[500]]}
+          back
+          style={{ paddingHorizontal: 24, paddingBottom: 16 }}
+        />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            gap: 8,
+            height: 40,
+            alignItems: 'center'
+          }}
+        >
+          {PERIODS.map((period) => {
+            const isActive = selectedPeriod.key === period.key;
 
-              return (
-                <TouchableOpacity
-                  key={period.key}
-                  activeOpacity={0.7}
-                  onPress={() => setSelectedPeriod(period)}
+            return (
+              <TouchableOpacity
+                key={period.key}
+                activeOpacity={0.7}
+                onPress={() => setSelectedPeriod(period)}
+                style={{
+                  flexDirection: 'row',
+                  gap: 5,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 14, // Formato pílula
+                  backgroundColor: isActive ? colors.green[500] : '#F3F4F6', // Troca a cor de fundo reativamente
+                  borderWidth: 1,
+                  borderColor: isActive ? colors.green[500] : '#E5E7EB'
+                }}
+              >
+                <MaterialIcons
+                  name="check-circle"
+                  size={18}
+                  color={isActive ? colors.white : colors.gray[200]}
+                />
+
+                <Text
                   style={{
-                    flexDirection: 'row',
-                    gap: 5,
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 14, // Formato pílula
-                    backgroundColor: isActive ? colors.green[500] : '#F3F4F6', // Troca a cor de fundo reativamente
-                    borderWidth: 1,
-                    borderColor: isActive ? colors.green[500] : '#E5E7EB'
+                    fontSize: 14,
+                    fontFamily: isActive ? fontFamily.bold : fontFamily.medium,
+                    color: isActive ? colors.white : '#4B5563', // Texto branco se ativo, cinza se inativo
+                    includeFontPadding: false
                   }}
                 >
-                  <MaterialIcons
-                    name="check-circle"
-                    size={18}
-                    color={isActive ? colors.white : colors.gray[200]}
-                  />
-
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontFamily: isActive
-                        ? fontFamily.bold
-                        : fontFamily.medium,
-                      color: isActive ? colors.white : '#4B5563', // Texto branco se ativo, cinza se inativo
-                      includeFontPadding: false
-                    }}
-                  >
-                    {period.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                  {period.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+      {isFetching ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: -80
+          }}
+        >
+          <Loading height={400} width={400} />
         </View>
-        {isFetching ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: -80
-            }}
-          >
-            <Loading height={400} width={400} />
-          </View>
-        ) : (
-          <ScrollView
-            style={{
-              flex: 1,
-              marginTop: 10,
-              gap: 10,
-              paddingHorizontal: 24
-            }}
-          >
-            {/* CARDS DE RESUMO FINANCEIRO */}
-            <View style={{ marginTop: 16, gap: 8 }}>
-              {/* CARD MASTER: FATURAMENTO */}
+      ) : (
+        <ScrollView
+          style={{
+            flex: 1,
+            marginTop: 10,
+            gap: 10,
+            paddingHorizontal: 24
+          }}
+        >
+          {/* CARDS DE RESUMO FINANCEIRO */}
+          <View style={{ marginTop: 16, gap: 8 }}>
+            {/* CARD MASTER: FATURAMENTO */}
+            <View
+              style={{
+                backgroundColor: '#F9FAFB',
+                padding: 16,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: '#E5E7EB'
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontFamily: fontFamily.medium,
+                  color: '#6B7280'
+                }}
+              >
+                Faturamento Estimado
+              </Text>
+
+              {/* O COUNTUP AGORA ENVOLVE E ESTILIZA O TEXTO */}
+              <Text
+                style={{
+                  fontSize: 26,
+                  fontFamily: fontFamily.bold,
+                  color: '#111827',
+                  marginTop: 4,
+                  includeFontPadding: false
+                }}
+              >
+                <CountUp
+                  key={totalRevenue} // Força a animação rodar de novo se o valor mudar
+                  isCounting
+                  start={0}
+                  end={totalRevenue}
+                  duration={1.2} // 1.2s fica bem fluido
+                  formatter={numberToCurrency}
+                />
+              </Text>
+            </View>
+            {/* FILA COM VENDAS E RETIRADAS LADO A LADO */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              {/* CARD: VENDAS */}
               <View
                 style={{
+                  flex: 1,
                   backgroundColor: '#F9FAFB',
                   padding: 16,
                   borderRadius: 16,
@@ -356,119 +396,75 @@ export default function Statistics() {
                     color: '#6B7280'
                   }}
                 >
-                  Faturamento Estimado
+                  Vendas Realizadas
                 </Text>
-
-                {/* O COUNTUP AGORA ENVOLVE E ESTILIZA O TEXTO */}
                 <Text
                   style={{
-                    fontSize: 26,
+                    fontSize: 20,
                     fontFamily: fontFamily.bold,
-                    color: '#111827',
+                    color: colors.green[500], // Combinando com a identidade verde da tela
                     marginTop: 4,
                     includeFontPadding: false
                   }}
                 >
                   <CountUp
-                    key={totalRevenue} // Força a animação rodar de novo se o valor mudar
+                    key={salesCount} // Reseta e anima junto com o gráfico
                     isCounting
                     start={0}
-                    end={totalRevenue}
-                    duration={1.2} // 1.2s fica bem fluido
-                    formatter={numberToCurrency}
+                    end={salesCount}
+                    duration={1.2} // Mesma duração para sincronia total
+                    // 🌟 Formata como inteiro e adiciona o sufixo de unidades
+                    formatter={(val) => `${val.toFixed(0)} un.`}
                   />
                 </Text>
               </View>
-              {/* FILA COM VENDAS E RETIRADAS LADO A LADO */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                {/* CARD: VENDAS */}
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: '#F9FAFB',
-                    padding: 16,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: '#E5E7EB'
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontFamily: fontFamily.medium,
-                      color: '#6B7280'
-                    }}
-                  >
-                    Vendas Realizadas
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      fontFamily: fontFamily.bold,
-                      color: colors.green[500], // Combinando com a identidade verde da tela
-                      marginTop: 4,
-                      includeFontPadding: false
-                    }}
-                  >
-                    <CountUp
-                      key={salesCount} // Reseta e anima junto com o gráfico
-                      isCounting
-                      start={0}
-                      end={salesCount}
-                      duration={1.2} // Mesma duração para sincronia total
-                      // 🌟 Formata como inteiro e adiciona o sufixo de unidades
-                      formatter={(val) => `${val.toFixed(0)} un.`}
-                    />
-                  </Text>
-                </View>
 
-                {/* CARD: RETIRADAS */}
-                <View
+              {/* CARD: RETIRADAS */}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: '#F9FAFB',
+                  padding: 16,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB'
+                }}
+              >
+                <Text
                   style={{
-                    flex: 1,
-                    backgroundColor: '#F9FAFB',
-                    padding: 16,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: '#E5E7EB'
+                    fontSize: 13,
+                    fontFamily: fontFamily.medium,
+                    color: '#6B7280'
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontFamily: fontFamily.medium,
-                      color: '#6B7280'
-                    }}
-                  >
-                    Retiradas / Ajustes
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      fontFamily: fontFamily.bold,
-                      color: colors.blue[500], // Vermelho para chamar atenção para saídas que não geraram caixa
-                      marginTop: 4,
-                      includeFontPadding: false
-                    }}
-                  >
-                    <CountUp
-                      key={withdrawalsCount} // Reseta e anima junto com o gráfico
-                      isCounting
-                      start={0}
-                      end={withdrawalsCount}
-                      duration={1.2} // Mesma duração para sincronia total
-                      // 🌟 Formata como inteiro e adiciona o sufixo de unidades
-                      formatter={(val) => `${val.toFixed(0)} un.`}
-                    />
-                  </Text>
-                </View>
+                  Retiradas / Ajustes
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontFamily: fontFamily.bold,
+                    color: colors.blue[500], // Vermelho para chamar atenção para saídas que não geraram caixa
+                    marginTop: 4,
+                    includeFontPadding: false
+                  }}
+                >
+                  <CountUp
+                    key={withdrawalsCount} // Reseta e anima junto com o gráfico
+                    isCounting
+                    start={0}
+                    end={withdrawalsCount}
+                    duration={1.2} // Mesma duração para sincronia total
+                    // 🌟 Formata como inteiro e adiciona o sufixo de unidades
+                    formatter={(val) => `${val.toFixed(0)} un.`}
+                  />
+                </Text>
               </View>
             </View>
-            <Chart data={chartData} />
-            <TopSellingSection items={topProducts} categories={categories} />
-          </ScrollView>
-        )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+          </View>
+          <Chart data={chartData} />
+          <TopSellingSection items={topProducts} categories={categories} />
+        </ScrollView>
+      )}
+    </SafeAreaView>
   );
 }
