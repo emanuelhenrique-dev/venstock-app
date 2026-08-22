@@ -397,23 +397,22 @@ export default function ProductForm() {
               </ScrollView>
             </View>
           </View>
+          <View
+            style={{
+              width: '100%',
+              marginBottom: 20,
+              backgroundColor: colors.white
+            }}
+          >
+            <Button
+              text={param.id ? 'Salvar Mudanças' : 'Adicionar Produto'}
+              color1={colors.green[400]}
+              color2={colors.green[500]}
+              onPress={handleSave}
+              isProcessing={isProcessing}
+            />
+          </View>
         </KeyboardWrapper>
-
-        <View
-          style={{
-            width: '100%',
-            marginBottom: 30,
-            backgroundColor: colors.white
-          }}
-        >
-          <Button
-            text={param.id ? 'Salvar Mudanças' : 'Adicionar Produto'}
-            color1={colors.green[400]}
-            color2={colors.green[500]}
-            onPress={handleSave}
-            isProcessing={isProcessing}
-          />
-        </View>
       </View>
     </SafeAreaView>
   );
