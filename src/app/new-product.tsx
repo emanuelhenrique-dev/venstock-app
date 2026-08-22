@@ -10,7 +10,11 @@ import { colors } from '@/theme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 
 import { ScannerButton } from '@/components/ScannerButton';
 import {
@@ -47,6 +51,8 @@ export default function ProductForm() {
 
   const productDatabase = useProductDatabase();
   const categoryDatabase = useCategoryDatabase();
+
+  const insets = useSafeAreaInsets(); // Ative o hook aqui dentro
 
   async function handleSave() {
     // 1. Validações obrigatórias
@@ -244,14 +250,15 @@ export default function ProductForm() {
   }, [param.id, param.categoryId, param.categoryName]);
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: colors.white,
         paddingHorizontal: 22,
-        paddingTop: 18
+        paddingTop: 18,
+        // Garante o espaçamento seguro inferior se houver barra de navegação virtual do sistema
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 10
       }}
-      edges={['bottom']}
     >
       <View style={{ flex: 1 }}>
         <KeyboardWrapper scrollView={false}>
@@ -414,6 +421,6 @@ export default function ProductForm() {
           </View>
         </KeyboardWrapper>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

@@ -8,7 +8,11 @@ import {
   TouchableOpacity
 } from 'react-native';
 
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  SafeAreaProvider,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -30,6 +34,8 @@ export default function LogIn() {
   const [userName, setUserName] = useState('');
   const [isNavigatingAbout, setIsNavigatingAbout] = useState(false);
 
+  const insets = useSafeAreaInsets();
+
   const { loggedIn } = useAuth();
   const router = useRouter();
 
@@ -50,15 +56,17 @@ export default function LogIn() {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: colors.white,
-        paddingHorizontal: 24
+        paddingHorizontal: 24,
+        // Garante o espaçamento seguro inferior para o botão "Começar minhas vendas"
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 10
       }}
-      edges={['bottom']}
     >
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+
       <TouchableOpacity
         onPress={async () => {
           if (isNavigatingAbout) return;
@@ -72,7 +80,8 @@ export default function LogIn() {
         disabled={isNavigatingAbout}
         style={{
           position: 'absolute',
-          top: 62,
+          // Soma o tamanho do notch/barra de status + um espaçamento interno desejado (ex: 20px)
+          top: insets.top > 0 ? insets.top + 20 : 62,
           right: 24,
           zIndex: 10,
           width: 44,
@@ -94,7 +103,6 @@ export default function LogIn() {
 
       <KeyboardWrapper
         keyboardVerticalOffset={Platform.OS === 'android' ? -30 : 0}
-        // contentContainerStyle do scroll view
         contentContainerStyle={{
           flexGrow: 1,
           paddingBottom: 60
@@ -181,6 +189,6 @@ export default function LogIn() {
           />
         </View>
       </KeyboardWrapper>
-    </SafeAreaView>
+    </View>
   );
 }

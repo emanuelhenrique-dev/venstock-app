@@ -2,13 +2,18 @@ import { Button } from '@/components/Button';
 import { ColorInput } from '@/components/ColorInput';
 import { ImageInput } from '@/components/ImageInput';
 import { Input } from '@/components/Input';
+import { KeyboardWrapper } from '@/components/KeyboardWrapper';
 import { PageHeader } from '@/components/PageHeader';
 import { useCategoryDatabase } from '@/database/useCategoryDatabase';
 import { colors } from '@/theme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 
 export default function CategoryForm() {
   const param = useLocalSearchParams<{ id?: string }>();
@@ -18,6 +23,8 @@ export default function CategoryForm() {
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(colors.blue[500]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const insets = useSafeAreaInsets();
 
   async function handleSave() {
     if (!categoryName.trim()) {
@@ -122,14 +129,15 @@ export default function CategoryForm() {
   }, [param.id]);
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: colors.white,
         paddingHorizontal: 22,
-        paddingTop: 22
+        paddingTop: 22,
+        // Garante o espaçamento seguro do botão inferior
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 10
       }}
-      edges={['bottom']}
     >
       <View>
         <PageHeader
@@ -153,35 +161,41 @@ export default function CategoryForm() {
         />
       </View>
 
-      <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
-        <ImageInput
-          imageUri={categoryImage}
-          onChangeImage={setCategoryImage}
-          color1={selectedColor}
-          color2={selectedColor}
-          variant="category"
-        />
-        <Input
-          label="NOME DA CATEGORIA*"
-          placeholder="Ex: Gelados"
-          value={categoryName}
-          onChangeText={setCategoryName}
-        />
-        <ColorInput
-          label="COR DA CATEGORIA"
-          selectedColor={selectedColor}
-          setSelectedColor={setSelectedColor}
-        />
-      </View>
-      <View style={{ marginVertical: 10, width: '100%' }}>
-        <Button
-          text={param.id ? 'Salvar Mudanças' : 'Criar nova Categoria'}
-          color1={colors.blue[400]}
-          color2={colors.blue[500]}
-          onPress={handleSave}
-          isProcessing={isProcessing}
-        />
-      </View>
-    </SafeAreaView>
+      {/* Envolve os inputs e o botão com o KeyboardWrapper igual às outras telas */}
+      <KeyboardWrapper scrollView={false}>
+        <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, marginTop: 10, gap: 20 }}>
+            <ImageInput
+              imageUri={categoryImage}
+              onChangeImage={setCategoryImage}
+              color1={selectedColor}
+              color2={selectedColor}
+              variant="category"
+            />
+            <Input
+              label="NOME DA CATEGORIA*"
+              placeholder="Ex: Gelados"
+              value={categoryName}
+              onChangeText={setCategoryName}
+            />
+            <ColorInput
+              label="COR DA CATEGORIA"
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+            />
+          </View>
+
+          <View style={{ marginVertical: 10, width: '100%' }}>
+            <Button
+              text={param.id ? 'Salvar Mudanças' : 'Criar nova Categoria'}
+              color1={colors.blue[400]}
+              color2={colors.blue[500]}
+              onPress={handleSave}
+              isProcessing={isProcessing}
+            />
+          </View>
+        </View>
+      </KeyboardWrapper>
+    </View>
   );
 }

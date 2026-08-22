@@ -25,7 +25,10 @@ import { router, useFocusEffect } from 'expo-router';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StatusBar, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 
 export type transactionType = 'sale' | 'withdrawal';
 export interface CartItemDetailed {
@@ -51,6 +54,8 @@ export default function Cart() {
   const [dbProducts, setDbProducts] = useState<ProductCardProps[]>([]); // Novo estado
 
   const { notificationsEnabled } = useAuth();
+
+  const insets = useSafeAreaInsets();
 
   // Lógica para decidir qual método e qual função de alteração enviar
   const currentMethod =
@@ -297,14 +302,19 @@ export default function Cart() {
   );
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
-        paddingHorizontal: 24
+        backgroundColor: colors.white, // Certifique-se de manter o fundo consistente
+        paddingHorizontal: 24,
+        // Aplica o espaçamento superior para o PageHeader não sumir sob o notch
+        paddingTop: insets.top > 0 ? insets.top : 20,
+        // Garante o espaçamento seguro inferior abaixo do CartSummary
+        paddingBottom: insets.bottom > 0 ? insets.bottom - 10 : 10
       }}
-      edges={['top', 'bottom']}
     >
       <StatusBar barStyle="dark-content" />
+
       <PageHeader
         title1="Minhas"
         title2={transactionType === 'sale' ? 'Vendas' : 'Saídas'}
@@ -319,6 +329,8 @@ export default function Cart() {
             : [colors.blue[400], colors.blue[500]]
         }
       />
+
+      {/* Container do KeyboardWrapper expandido para gerenciar o input dentro do CartSummary */}
       <KeyboardWrapper scrollView={false}>
         <View style={{ flex: 1, marginTop: 20, gap: 20 }}>
           {!isFetching ? (
@@ -365,7 +377,7 @@ export default function Cart() {
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        gap: 4 // Espaçamento entre os elementos
+                        gap: 4
                       }}
                     >
                       <MaterialIcons
@@ -401,7 +413,7 @@ export default function Cart() {
                             ? colors.green[500]
                             : colors.blue[500]
                         }
-                        style={{ marginBottom: -1 }} // Ajuste fino se a fonte ainda "puxar" para baixo
+                        style={{ marginBottom: -1 }}
                       />
 
                       <Text
@@ -445,6 +457,6 @@ export default function Cart() {
           />
         </View>
       </KeyboardWrapper>
-    </SafeAreaView>
+    </View>
   );
 }
