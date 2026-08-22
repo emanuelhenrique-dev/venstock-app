@@ -6,7 +6,7 @@ import { SearchInput } from '@/components/SearchInput';
 import { Summary } from '@/components/Summary';
 import { userStorage } from '@/database/userStorage';
 import { colors, fontFamily } from '@/theme';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -82,6 +82,14 @@ export default function Index() {
 
   const insets = useSafeAreaInsets();
 
+  // Ref para acompanhar a categoria selecionada sem recriar funções
+  const selectedCategoryRef = useRef(selectedCategory);
+
+  // Mantém a ref sempre atualizada com o estado
+  useEffect(() => {
+    selectedCategoryRef.current = selectedCategory;
+  }, [selectedCategory]);
+
   //Base de dados fictícia para os períodos
   const PERIODS_CONFIG: { key: SummaryPeriod; label: string }[] = [
     { key: '24h', label: 'Últimas 24h' },
@@ -102,11 +110,10 @@ export default function Index() {
     setShowUniqueProducts((prev) => !prev);
   }
 
-  // Função isolada para tratar o botão de voltar
+  // Função isolada para tratar o botão de voltar com dependência estável []
   const handleBackPress = useCallback(() => {
-    // Se houver uma categoria selecionada, limpa e bloqueia a saída
-    if (selectedCategory !== null) {
-      console.log('teste aqui');
+    // Usa a ref em vez do estado diretamente
+    if (selectedCategoryRef.current !== null) {
       setSelectedCategory(null);
       return true;
     }
@@ -126,7 +133,7 @@ export default function Index() {
     );
 
     return true;
-  }, [selectedCategory]); // Monitora o estado para ter o valor atualizado
+  }, []); // Sem dependências! A referência nunca muda.
 
   async function fetchCategories(): Promise<CategoryCardProps[]> {
     try {
