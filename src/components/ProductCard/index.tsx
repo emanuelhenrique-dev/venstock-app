@@ -313,6 +313,10 @@ export const ProductCard = memo(
       prevProps.variant === nextProps.variant &&
       prevProps.quantity === nextProps.quantity &&
       prevProps.data.id === nextProps.data.id &&
+      prevProps.data.imageUrl === nextProps.data.imageUrl &&
+      prevProps.data.name === nextProps.data.name &&
+      prevProps.data.price === nextProps.data.price &&
+      prevProps.data.color === nextProps.data.color &&
       prevProps.data.qtdEstoque === nextProps.data.qtdEstoque &&
       prevProps.data.qtdVendidos === nextProps.data.qtdVendidos
     );
