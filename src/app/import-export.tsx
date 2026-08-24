@@ -12,6 +12,8 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Feather } from '@expo/vector-icons';
+import { PageHeader } from '@/components/PageHeader';
+import { colors, fontFamily } from '@/theme';
 
 import {
   ImportExportService,
@@ -274,13 +276,20 @@ export default function ImportExportScreen() {
         </View>
       )}
 
+      <PageHeader
+        title1="Backup e"
+        title2="Restauração"
+        subtitle="Salve ou restaure os dados do seu catálogo com segurança."
+        gradient={[colors.blue[400], colors.blue[500]]}
+        back
+        style={styles.pageHeader}
+      />
+
       <FlatList
         data={exportsList}
         keyExtractor={(item) => item.filePath}
         ListHeaderComponent={
           <View style={styles.headerSection}>
-            <Text style={styles.title}>Backup e Restauração</Text>
-
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Exportar Dados</Text>
               <Text style={styles.cardDescription}>
@@ -406,8 +415,8 @@ export default function ImportExportScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
-    paddingTop: 22
+    backgroundColor: colors.white,
+    paddingTop: 14
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -423,38 +432,35 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   listContent: {
-    padding: 16
+    paddingHorizontal: 24,
+    paddingBottom: 40
   },
   headerSection: {
     marginBottom: 12
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1C1C1E',
-    marginBottom: 16,
-    textAlign: 'center'
+  pageHeader: {
+    paddingTop: 0,
+    paddingHorizontal: 24,
+    paddingBottom: 16
   },
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 20,
+    marginBottom: 16
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontSize: 16,
+    fontFamily: fontFamily.semiBold,
+    color: '#111827',
     marginBottom: 6
   },
   cardDescription: {
     fontSize: 14,
-    color: '#6C6C70',
+    fontFamily: fontFamily.regular,
+    color: '#4B5563',
     marginBottom: 16,
     lineHeight: 20
   },
@@ -466,42 +472,43 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 15,
-    color: '#1C1C1E'
+    fontFamily: fontFamily.regular,
+    color: '#4B5563'
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.blue[400],
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: 8
+    borderRadius: 12
   },
   primaryButtonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: '600'
+    fontFamily: fontFamily.semiBold
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: colors.blue[400],
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: 8
+    borderRadius: 12
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: colors.blue[400],
     fontSize: 16,
-    fontWeight: '600'
+    fontFamily: fontFamily.semiBold
   },
   buttonIcon: {
     marginRight: 8
   },
   sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontSize: 16,
+    fontFamily: fontFamily.semiBold,
+    color: '#111827',
     marginTop: 8,
     marginBottom: 12
   },
