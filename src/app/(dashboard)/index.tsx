@@ -47,7 +47,12 @@ export type selectedCategoryProps = {
 };
 
 export default function Index() {
-  const { user, notificationsEnabled, resetCategoryOnFocus } = useAuth();
+  const {
+    user,
+    notificationsEnabled,
+    resetCategoryOnFocus,
+    sortAlphabetically
+  } = useAuth();
   const [totalStock, setTotalStock] = useState('0');
   const [lowStockCount, setLowStockCount] = useState('0');
 
@@ -137,7 +142,7 @@ export default function Index() {
 
   async function fetchCategories(): Promise<CategoryCardProps[]> {
     try {
-      const response = await CategoryDatabase.getAll();
+      const response = await CategoryDatabase.getAll(sortAlphabetically);
 
       return response.map((item) => ({
         id: String(item.id),

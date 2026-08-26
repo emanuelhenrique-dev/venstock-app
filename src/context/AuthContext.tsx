@@ -23,6 +23,7 @@ type AuthState = {
   loading: boolean;
   notificationsEnabled: boolean;
   resetCategoryOnFocus: boolean;
+  sortAlphabetically: boolean;
   updateUser: (
     name: string,
     image: string | null,
@@ -36,6 +37,7 @@ type AuthState = {
   loggedOut: () => Promise<void>;
   toggleNotifications: (enabled: boolean) => Promise<void>;
   toggleResetCategoryOnFocus: (enabled: boolean) => Promise<void>;
+  toggleSortAlphabetically: (enabled: boolean) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthState>({} as AuthState);
@@ -48,6 +50,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   //preferencias
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [resetCategoryOnFocus, setResetCategoryOnFocus] = useState(false);
+  const [sortAlphabetically, setSortAlphabetically] = useState(false);
 
   const router = useRouter();
   const { saveUserData, getUserData, clearUserData } = userStorage();
@@ -68,6 +71,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
           '@venstock:reset_category'
         );
         setResetCategoryOnFocus(storedResetCategory === 'true');
+
+        // Carrega a preferência de ordenação alfabética (padrão 'false' se não existir)
+        const storedSortAlphabetically = await AsyncStorage.getItem(
+          '@venstock:sort_alphabetically'
+        );
+        setSortAlphabetically(storedSortAlphabetically === 'true');
 
         if (storedUser && storedUser.name) {
           setUser({
@@ -115,6 +124,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }
 
+  // Ativar ou desativar ordenação alfabética das categorias
+  async function toggleSortAlphabetically(enabled: boolean) {
+    try {
+      setSortAlphabetically(enabled);
+      await AsyncStorage.setItem(
+        '@venstock:sort_alphabetically',
+        String(enabled)
+      );
+    } catch (error) {
+      console.log('Erro ao salvar preferência de ordenação:', error);
+    }
+  }
+
   async function loggedIn(name: string, image: string | null, color: string) {
     await saveUserData(name, image, color);
     setUser({ name, image, color });
@@ -139,8 +161,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         loading,
         notificationsEnabled,
         resetCategoryOnFocus,
+        sortAlphabetically,
         toggleNotifications,
         toggleResetCategoryOnFocus,
+        toggleSortAlphabetically,
         updateUser,
         loggedIn,
         loggedOut

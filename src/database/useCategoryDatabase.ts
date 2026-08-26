@@ -48,8 +48,12 @@ export function useCategoryDatabase() {
   }
 
   // Função para Listar todas as Categorias
-  async function getAll() {
+  async function getAll(sortAlphabetically = false) {
     try {
+      const orderByClause = sortAlphabetically
+        ? 'ORDER BY c.name COLLATE NOCASE ASC'
+        : 'ORDER BY c.created_at ASC';
+
       const query = `
         SELECT 
           c.id,
@@ -74,10 +78,17 @@ export function useCategoryDatabase() {
         FROM categories c
         LEFT JOIN products p ON p.category_id = c.id
         GROUP BY c.id
-        ORDER BY c.name ASC
+        ${orderByClause}
       `;
 
       const response = await database.getAllAsync<CategoryResponse>(query);
+
+      //Se for ordem alfabética, ajusta a ordenação no JS com localeCompare para tratar acentos em PT-BR
+      if (sortAlphabetically) {
+        return response.sort((a, b) =>
+          a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+        );
+      }
 
       return response;
     } catch (error) {

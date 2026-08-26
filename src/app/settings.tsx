@@ -12,8 +12,10 @@ export default function Settings() {
   const {
     notificationsEnabled,
     resetCategoryOnFocus,
+    sortAlphabetically,
     toggleNotifications,
-    toggleResetCategoryOnFocus
+    toggleResetCategoryOnFocus,
+    toggleSortAlphabetically
   } = useAuth();
 
   return (
@@ -58,6 +60,19 @@ export default function Settings() {
             isSwitch
             switchValue={resetCategoryOnFocus}
             onSwitchChange={toggleResetCategoryOnFocus}
+          />
+
+          <OptionCard
+            title="Ordenar Categorias por Nome (A-Z)"
+            subtitle={
+              sortAlphabetically
+                ? 'Categorias em ordem alfabética. Pode ser necessário reiniciar o app para aplicar.'
+                : 'Categorias por data de criação. Pode ser necessário reiniciar o app para aplicar.'
+            }
+            icon="sort-by-alpha"
+            isSwitch
+            switchValue={sortAlphabetically}
+            onSwitchChange={toggleSortAlphabetically}
           />
 
           <OptionCard
