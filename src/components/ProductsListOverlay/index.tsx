@@ -91,6 +91,7 @@ export function ProductsListOverlay({ selectedCategory, onClose }: Props) {
 
   async function fetchData() {
     const data = await fetchProductsByCategory();
+    console.log(data);
     setProducts(data);
 
     setIsLoading(false);

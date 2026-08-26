@@ -130,14 +130,17 @@ export function useProductDatabase() {
         FROM products p
         INNER JOIN categories c ON c.id = p.category_id -- <-- Adicionado para dar suporte ao category_name
         WHERE p.category_id = ?
-        ORDER BY p.created_at ASC
+        ORDER BY p.name COLLATE NOCASE ASC
       `;
 
       const response = await database.getAllAsync<ProductResponse>(query, [
         categoryID
       ]);
 
-      return response;
+      // Ordena respeitando acentos do Português (Á virará A)
+      return response.sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+      );
     } catch (error) {
       console.log('Erro ao buscar lista de produtos por categoria:', error);
       throw error;
