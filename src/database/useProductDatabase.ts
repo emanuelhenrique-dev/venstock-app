@@ -209,8 +209,8 @@ export function useProductDatabase() {
         FROM products p
         INNER JOIN categories c ON c.id = p.category_id
 
-        -- O Filtro : Procura por nome ou código de barras
-        WHERE P.name LIKE ? OR p.barcode LIKE ?
+        -- O Filtro : Procura por nome, código de barras ou identificador
+        WHERE p.name LIKE ? OR p.barcode LIKE ? OR p.identifier LIKE ?
 
         ORDER BY c.name ASC, p.name ASC
       `;
@@ -219,6 +219,7 @@ export function useProductDatabase() {
       const searchTerm = `%${text}%`;
 
       const response = await database.getAllAsync<ProductResponse>(query, [
+        searchTerm,
         searchTerm,
         searchTerm
       ]);

@@ -323,9 +323,9 @@ export default function ProductForm() {
                       placeholder="Opcional"
                       value={productIdentifier}
                       onChangeText={(text) =>
-                        setProductIdentifier(text.toUpperCase().slice(0, 2))
+                        setProductIdentifier(text.toUpperCase().slice(0, 5))
                       }
-                      maxLength={2}
+                      maxLength={5}
                       inputStyle={{ textAlign: 'center' }}
                     />
                   </View>
