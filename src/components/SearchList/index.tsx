@@ -109,13 +109,9 @@ export function SearchList({ searchResults, isSearching }: props) {
               }
             }}
             leftAction={{
-              icon: 'edit',
-              onOpen: () =>
-                EditProduct(
-                  productData.id,
-                  item.category_id,
-                  item.category_name || 'Sem Categoria'
-                )
+              icon: 'remove-red-eye',
+              onOpen: () => router.navigate(`/product-page/?id=${item.id}`),
+              color: colors.green[400]
             }}
           />
         );

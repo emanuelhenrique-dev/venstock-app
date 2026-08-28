@@ -117,6 +117,11 @@ export default function Index() {
 
   // Função isolada para tratar o botão de voltar com dependência estável []
   const handleBackPress = useCallback(() => {
+    if (searchQuery.trim() !== '') {
+      setSearchQuery('');
+      return true;
+    }
+
     // Usa a ref em vez do estado diretamente
     if (selectedCategoryRef.current !== null) {
       setSelectedCategory(null);
@@ -138,7 +143,7 @@ export default function Index() {
     );
 
     return true;
-  }, []); // Sem dependências! A referência nunca muda.
+  }, [searchQuery]);
 
   async function fetchCategories(): Promise<CategoryCardProps[]> {
     try {
