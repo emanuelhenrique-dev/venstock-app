@@ -1,6 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite';
 
 export type CategoryCreate = {
+  id?: number; // Opcional para importação
   name: string;
   color: string;
   imageUrl?: string;
@@ -27,19 +28,30 @@ export function useCategoryDatabase() {
 
   // Função para Cadastrar uma Categoria
   async function create(data: CategoryCreate) {
-    const statement = await database.prepareAsync(
-      `INSERT INTO categories (name, color, image_url) VALUES ($name, $color, $image_url)`
-    );
+    // Se veio um ID (importação), inclui o campo 'id' na query
+    const query = data.id
+      ? `INSERT INTO categories (id, name, color, image_url) VALUES ($id, $name, $color, $image_url)`
+      : `INSERT INTO categories (name, color, image_url) VALUES ($name, $color, $image_url)`;
+
+    const statement = await database.prepareAsync(query);
 
     try {
-      const result = await statement.executeAsync({
+      const params: Record<string, any> = {
         $name: data.name,
         $color: data.color,
         $image_url: data.imageUrl ?? null
-      });
+      };
 
-      // Retorna o ID que o banco gerou automaticamente
-      return { insertId: result.lastInsertRowId };
+      if (data.id) {
+        params.$id = data.id;
+      }
+
+      const result = await statement.executeAsync(params);
+
+      // Se passou ID manual, usa data.id; caso contrário usa o ID gerado pelo banco
+      const insertedId = data.id ?? result.lastInsertRowId;
+
+      return { insertId: insertedId };
     } catch (error) {
       throw error;
     } finally {

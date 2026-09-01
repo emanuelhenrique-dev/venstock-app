@@ -2,6 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 
 // O que o seu formulário de cadastro vai enviar
 export type ProductCreate = {
+  id?: number; // Opcional: usado na importação/backup
   name: string;
   price: number;
   qtdEstoque: number;
@@ -42,15 +43,23 @@ export function useProductDatabase() {
 
   // Função para cadastrar um Produto
   async function create(data: ProductCreate) {
-    const statement = await database.prepareAsync(`
-      INSERT INTO products 
+    // Se passar o ID, inclui a coluna 'id' no INSERT. Se não passar, o SQLite gera o AUTOINCREMENT.
+    const hasCustomId = data.id !== undefined && data.id !== null;
+
+    const sql = hasCustomId
+      ? `INSERT INTO products 
+        (id, name, price, quantity, min_stock, barcode, identifier, description, color, image_url, category_id)
+       VALUES
+        ($id, $name, $price, $quantity, $min_stock, $barcode, $identifier, $description, $color, $image_url, $category_id)`
+      : `INSERT INTO products 
         (name, price, quantity, min_stock, barcode, identifier, description, color, image_url, category_id)
-      VALUES
-        ($name, $price, $quantity, $min_stock, $barcode, $identifier, $description, $color, $image_url, $category_id)
-    `);
+       VALUES
+        ($name, $price, $quantity, $min_stock, $barcode, $identifier, $description, $color, $image_url, $category_id)`;
+
+    const statement = await database.prepareAsync(sql);
 
     try {
-      const result = await statement.executeAsync({
+      const params: Record<string, any> = {
         $name: data.name,
         $price: data.price,
         $quantity: data.qtdEstoque,
@@ -61,9 +70,18 @@ export function useProductDatabase() {
         $color: data.color,
         $image_url: data.imageUrl || null,
         $category_id: data.category_id
-      });
+      };
 
-      return { insertId: result.lastInsertRowId };
+      if (hasCustomId) {
+        params.$id = Number(data.id);
+      }
+
+      const result = await statement.executeAsync(params);
+
+      // Retorna o ID do produto criado ou forçado
+      const insertedId = hasCustomId ? Number(data.id) : result.lastInsertRowId;
+
+      return { insertId: insertedId };
     } catch (error) {
       console.log('Erro ao criar produto:', error);
       throw error;

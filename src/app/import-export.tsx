@@ -111,29 +111,35 @@ export default function ImportExportScreen() {
       await clearDatabase();
 
       const categoryIdMap = new Map<number, number>();
+      const productIdMap = new Map<number, number>();
 
+      // 1. CATEGORIAS
       if (data.categories && Array.isArray(data.categories)) {
         for (const cat of data.categories as any[]) {
           const createdCategory = await categoryDb.create({
+            id: cat.id ? Number(cat.id) : undefined,
             name: cat.name,
             color: cat.color,
             imageUrl: ''
           });
 
           const newId =
-            createdCategory?.insertId ?? (createdCategory as any)?.id;
+            createdCategory?.insertId ?? (createdCategory as any)?.id ?? cat.id;
           if (cat.id && newId) {
             categoryIdMap.set(Number(cat.id), Number(newId));
           }
         }
       }
 
+      // 2. PRODUTOS
       if (data.products && Array.isArray(data.products)) {
         for (const prod of data.products as any[]) {
           const oldCatId = prod.category_id ?? prod.categoryId;
-          const newCatId = categoryIdMap.get(Number(oldCatId)) ?? oldCatId;
+          const newCatId =
+            categoryIdMap.get(Number(oldCatId)) ?? Number(oldCatId);
 
-          await productDb.create({
+          const createdProduct = await productDb.create({
+            id: prod.id ? Number(prod.id) : undefined,
             name: prod.name,
             price: prod.price,
             qtdEstoque: prod.qtdEstoque ?? prod.quantity ?? 0,
@@ -146,16 +152,24 @@ export default function ImportExportScreen() {
             description: prod.description ?? '',
             identifier: prod.identifier ?? ''
           });
+
+          // Pega o novo ID gerado no banco de dados para o produto
+          const newProdId =
+            createdProduct?.insertId ?? (createdProduct as any)?.id ?? prod.id;
+
+          if (prod.id && newProdId) {
+            productIdMap.set(Number(prod.id), Number(newProdId));
+          }
         }
       }
 
+      // 3. TRANSAÇÕES (Ajustado para o filtro de estatísticas funcionar)
       if (
         shouldImportTransactions &&
         data.includeTransactions &&
         data.transactions &&
         Array.isArray(data.transactions)
       ) {
-        //apagar todas transações existentes
         await transactionDb.deleteAllTransactions();
 
         for (const tx of data.transactions as any[]) {
@@ -170,13 +184,32 @@ export default function ImportExportScreen() {
                 created_at: tx.date || tx.created_at || tx.createdAt || null,
                 user_name: tx.user_name || null,
                 items: Array.isArray(tx.items)
-                  ? tx.items.map((item: any) => ({
-                      id: Number(item.id ?? 0),
-                      name: item.name ?? '',
-                      price: item.price ?? 0,
-                      quantity: item.quantity ?? item.qtd ?? 1,
-                      isImported: true
-                    }))
+                  ? tx.items.map((item: any) => {
+                      // Descobre o novo ID do produto no banco
+                      const oldProdId =
+                        item.id ?? item.productId ?? item.product_id;
+                      const newProdId =
+                        productIdMap.get(Number(oldProdId)) ??
+                        Number(oldProdId);
+
+                      // Descobre a nova categoria
+                      const itemOldCatId = item.categoryId ?? item.category_id;
+                      const itemNewCatId =
+                        categoryIdMap.get(Number(itemOldCatId)) ??
+                        Number(itemOldCatId);
+
+                      return {
+                        id: newProdId, // <--- Vincula ao ID atual do produto no banco!
+                        productId: newProdId,
+                        product_id: newProdId,
+                        name: item.name ?? '',
+                        price: item.price ?? 0,
+                        quantity: item.quantity ?? item.qtd ?? 1,
+                        categoryId: itemNewCatId,
+                        category_id: itemNewCatId,
+                        isImported: true
+                      };
+                    })
                   : []
               },
               { isImport: true }

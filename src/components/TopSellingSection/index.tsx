@@ -30,6 +30,15 @@ export function TopSellingSection({
   items,
   categories
 }: TopSellingSectionProps) {
+  console.log('--- DIAGNÓSTICO TOP SELLING ---');
+  console.log('Total de categorias recebidas:', categories.length, categories);
+  console.log('Amostra dos 3 primeiros items:', items.slice(0, 3));
+  console.log(
+    'IDs de categoria presentes nos items:',
+    items.map((i) => i.categoryId)
+  );
+  console.log('-------------------------------');
+
   // Filtro 1: 'products' ou 'categories'
   const [rankingType, setRankingType] = useState<'products' | 'categories'>(
     'products'
@@ -47,11 +56,15 @@ export function TopSellingSection({
   // Injeta a opção de redefinir o filtro ("Todos") no início da lista do Select
   const selectOptions = useMemo(() => {
     const soldCategoryIds = new Set(
-      items.map((item) => item.categoryId).filter(Boolean)
+      items
+        .map((item) =>
+          item.categoryId != null ? String(item.categoryId) : null
+        )
+        .filter(Boolean)
     );
 
     const activeCategories = categories.filter((cat) =>
-      soldCategoryIds.has(cat.id)
+      soldCategoryIds.has(String(cat.id))
     );
 
     return [{ id: 'all', name: 'Filtra por Categoria' }, ...activeCategories];
@@ -63,13 +76,13 @@ export function TopSellingSection({
     let result: RankingItem[] = [];
 
     if (rankingType === 'products') {
-      // 1. Aplica o filtro de categoria selecionada
+      // Aplica filtro de categoria
       const filtered = items.filter((item) => {
         if (!selectedCategory || selectedCategory.id === 'all') return true;
-        return item.categoryId === selectedCategory.id;
+        return String(item.categoryId) === String(selectedCategory.id);
       });
 
-      // 2. Agrupa por nome (somando vendas locais + importadas)
+      // Agrupa por produto
       const productMap: Record<string, RankingItem> = {};
 
       filtered.forEach((item) => {
@@ -85,29 +98,36 @@ export function TopSellingSection({
 
       result = Object.values(productMap);
     } else {
+      // Agrupa por Categoria
       const categoryMap: Record<
         string,
         { id: string; name: string; quantity: number; revenue: number }
       > = {};
 
       items.forEach((item) => {
-        if (!item.categoryId) return;
+        // Se não tiver categoryId, atribui para a categoria genérica "uncategorized"
+        const rawCatId =
+          item.categoryId != null && item.categoryId !== ''
+            ? String(item.categoryId)
+            : 'uncategorized';
 
         const categoryName =
-          categories.find((c) => c.id === item.categoryId)?.name ||
-          'Sem Categoria';
+          rawCatId === 'uncategorized'
+            ? 'Sem Categoria'
+            : categories.find((c) => String(c.id) === rawCatId)?.name ||
+              'Sem Categoria';
 
-        if (!categoryMap[item.categoryId]) {
-          categoryMap[item.categoryId] = {
-            id: item.categoryId,
+        if (!categoryMap[rawCatId]) {
+          categoryMap[rawCatId] = {
+            id: rawCatId,
             name: categoryName,
             quantity: 0,
             revenue: 0
           };
         }
 
-        categoryMap[item.categoryId].quantity += item.quantity;
-        categoryMap[item.categoryId].revenue += item.revenue;
+        categoryMap[rawCatId].quantity += item.quantity;
+        categoryMap[rawCatId].revenue += item.revenue;
       });
 
       result = Object.values(categoryMap);
