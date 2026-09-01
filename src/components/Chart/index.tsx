@@ -76,7 +76,7 @@ export function Chart({ data }: ChartProps) {
       ...item,
       value,
       dataPointColor: isSelected ? colors.green[500] : '#9CA3AF',
-      dataPointRadius: isSelected ? 6 : 3.5,
+      dataPointRadius: isSelected ? 9 : 6,
       dataPointBorderColor: isSelected ? colors.white : 'transparent',
       dataPointBorderWidth: isSelected ? 2 : 0,
 
