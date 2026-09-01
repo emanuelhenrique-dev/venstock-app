@@ -117,7 +117,7 @@ export default function ImportExportScreen() {
           const createdCategory = await categoryDb.create({
             name: cat.name,
             color: cat.color,
-            imageUrl: cat.imageUrl || cat.image_url || ''
+            imageUrl: ''
           });
 
           const newId =
@@ -174,7 +174,8 @@ export default function ImportExportScreen() {
                       id: Number(item.id ?? 0),
                       name: item.name ?? '',
                       price: item.price ?? 0,
-                      quantity: item.quantity ?? item.qtd ?? 1
+                      quantity: item.quantity ?? item.qtd ?? 1,
+                      isImported: true
                     }))
                   : []
               },

@@ -13,6 +13,7 @@ export interface RankingItem {
   quantity: number;
   revenue: number;
   categoryId?: string;
+  isImported?: boolean; // <-- Flag para identificar registros de backup
 }
 
 export interface CategoryFilter {
@@ -57,14 +58,32 @@ export function TopSellingSection({
   }, [items, categories]);
 
   // Lógica inteligente que filtra produtos ou agrupa por categoria, e ordena dinamicamente
+  // Lógica inteligente que filtra produtos unificando locais e importados
   const processedItems = useMemo(() => {
     let result: RankingItem[] = [];
 
     if (rankingType === 'products') {
-      result = items.filter((item) => {
+      // 1. Aplica o filtro de categoria selecionada
+      const filtered = items.filter((item) => {
         if (!selectedCategory || selectedCategory.id === 'all') return true;
         return item.categoryId === selectedCategory.id;
       });
+
+      // 2. Agrupa por nome (somando vendas locais + importadas)
+      const productMap: Record<string, RankingItem> = {};
+
+      filtered.forEach((item) => {
+        const key = item.name.trim().toLowerCase();
+
+        if (!productMap[key]) {
+          productMap[key] = { ...item };
+        } else {
+          productMap[key].quantity += item.quantity;
+          productMap[key].revenue += item.revenue;
+        }
+      });
+
+      result = Object.values(productMap);
     } else {
       const categoryMap: Record<
         string,
