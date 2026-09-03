@@ -1,7 +1,25 @@
 ﻿# 📦 Venstock
 
 <p align="center">
-  <img alt="Venstock logo" src=".github/image01.jpeg" width="22%" />
+  <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/emanuelhenrique-dev/venstock-app" />
+  
+  <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/emanuelhenrique-dev/venstock-app" />
+  
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/emanuelhenrique-dev/venstock-app" />
+
+  <img alt="GitHub commit activity (branch)" src="https://img.shields.io/github/commit-activity/t/emanuelhenrique-dev/venstock-app">
+
+  <a href="https://github.com/emanuelhenrique-dev/venstock-app/commits/master">
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/emanuelhenrique-dev/venstock-app" />
+  </a>
+
+  <a href="https://github.com/emanuelhenrique-dev/venstock-app/issues">
+    <img alt="Repository issues" src="https://img.shields.io/github/issues/emanuelhenrique-dev/venstock-app" />
+  </a>
+</p>
+
+<p align="center">
+  <img alt="Venstock logo" src=".github/image01.png" width="22%" />
 </p>
 
 Venstock é um aplicativo mobile para pequenos comércios gerenciarem estoque, vendas, produtos e receitas com dados salvos localmente.
@@ -16,6 +34,7 @@ O app foi desenvolvido para comerciantes que precisam de controle rápido e conf
 - Busca por nome, código de barras e categoria
 - Notificações locais para alertas de estoque baixo e carrinho
 - Estatísticas e ranking de produtos mais vendidos
+- Exportação e importação de dados de backup (JSON)
 
 ## 🧠 Tecnologias usadas
 
@@ -23,12 +42,11 @@ O app foi desenvolvido para comerciantes que precisam de controle rápido e conf
 - Expo SDK 54
 - Expo Router
 - TypeScript
-- SQLite via `expo-sqlite`
-- AsyncStorage via `@react-native-async-storage/async-storage`
-- Expo Notifications, Camera e Image Picker
+- SQLite
+- AsyncStorage
+- Expo Notifications, Camera, Image Picker e sharing , etc
 - React Native SVG e QRCode
 - Zustand para estado global
-- EAS Build (Android)
 
 ## 📦 Funcionalidades atuais
 
@@ -65,6 +83,7 @@ npm run android
 - A navegação é feita com Expo Router.
 - O app usa câmera e galeria para imagens de produtos e perfil.
 - O banco de dados local é gerenciado via SQLite.
+- Pretendo fazer uma v2 com banco de dados online.
 
 ## 📝 Aprendizados
 
@@ -75,6 +94,6 @@ npm run android
 - Estatísticas de vendas e análise de estoque em tempo real
 
 <p align="center">
-  <img src=".github/image02.jpeg" width="23%" />
-  <img src=".github/image03.jpeg" width="23%" />
+  <img src=".github/image02.png" width="23%" />
+  <img src=".github/image03.png" width="23%" />
 </p>
