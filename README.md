@@ -88,10 +88,12 @@ npm run android
 ## 📝 Aprendizados
 
 - Armazenamento local com SQLite e migrações
+- Exportação, importação e preservação de integridade relacional em backups JSON
+- Tratamento de dados legados e compatibilidade retroativa no banco de dados
 - Formulários de produto com validações e captura de imagem
 - Navegação moderna com Expo Router
 - Integração com notificações nativas e permissões de dispositivo
-- Estatísticas de vendas e análise de estoque em tempo real
+- Estatísticas de vendas, gráficos interativos e análise de estoque em tempo real
 
 <p align="center">
   <img src=".github/image02.png" width="23%" />
