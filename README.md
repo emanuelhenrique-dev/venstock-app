@@ -24,6 +24,20 @@
 
 Venstock é um aplicativo mobile para pequenos comércios gerenciarem estoque, vendas, produtos e receitas com dados salvos localmente.
 
+## 📲 Download e Projeto
+
+<p align="center">
+  <!-- <a href="https://drive.google.com/file/d/1nzie36gQSCJkbzuH5MmTNPsxxR_so1m8/view" target="_blank">
+    <img src="https://img.shields.io/badge/Google_Drive-APK-yellow?style=for-the-badge&logo=googledrive&logoColor=white" alt="Download APK Google Drive" />
+  </a> -->
+  <a href="https://expo.dev/accounts/emanuelhenrique-dev/projects/venstock-app/builds/7d18649a-8400-4a50-afa4-5e93677255ee" target="_blank">
+    <img src="https://img.shields.io/badge/Expo-Project-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Link do Projeto no Expo" />
+  </a>
+  <a href="https://expo.dev/accounts/emanuelhenrique-dev/projects/venstock-app/builds" target="_blank">
+    <img src="https://img.shields.io/badge/EAS-Builds-green?style=for-the-badge&logo=android&logoColor=white" alt="Download APK via EAS" />
+  </a>
+</p>
+
 ## 🚀 Visão geral
 
 O app foi desenvolvido para comerciantes que precisam de controle rápido e confiável do estoque e das vendas:
