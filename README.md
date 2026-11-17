@@ -30,7 +30,7 @@ Venstock é um aplicativo mobile para pequenos comércios gerenciarem estoque, v
   <!-- <a href="https://drive.google.com/file/d/1nzie36gQSCJkbzuH5MmTNPsxxR_so1m8/view" target="_blank">
     <img src="https://img.shields.io/badge/Google_Drive-APK-yellow?style=for-the-badge&logo=googledrive&logoColor=white" alt="Download APK Google Drive" />
   </a> -->
-      <a href="" target="_blank">
+      <a href="https://drive.google.com/file/d/1L5441pZ5c8-BrkrgWJ8s3eh4nwmpmoeP/view?usp=sharing" target="_blank">
   <img src="https://img.shields.io/badge/Google-Drive-000020?style=for-the-badge&logo=google-drive&logoColor=white" alt="Link do Projeto google drive" />
   </a>
   <a href="https://expo.dev/accounts/emanuelhenrique-dev/projects/venstock-app/builds/7d18649a-8400-4a50-afa4-5e93677255ee" target="_blank">
